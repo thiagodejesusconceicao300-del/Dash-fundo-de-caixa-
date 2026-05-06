@@ -1,0 +1,2938 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fundo de caixa</title>
+<style>
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --surface-2: #f5f5f4;
+    --surface-3: #e7e5e4;
+    --text: #1c1917;
+    --text-muted: #57534e;
+    --text-subtle: #a8a29e;
+    --border: #e7e5e4;
+    --border-strong: #d6d3d1;
+    --accent: #0a0a0a;
+    --accent-fg: #ffffff;
+
+    --success: #16a34a;
+    --success-bg: #dcfce7;
+    --success-fg: #15803d;
+    --warning: #d97706;
+    --warning-bg: #fef3c7;
+    --warning-fg: #b45309;
+    --danger: #dc2626;
+    --danger-bg: #fee2e2;
+    --danger-fg: #b91c1c;
+    --info: #2563eb;
+    --info-bg: #dbeafe;
+    --info-fg: #1d4ed8;
+  }
+  [data-theme="dark"] {
+    --bg: #0c0a09;
+    --surface: #1c1917;
+    --surface-2: #292524;
+    --surface-3: #44403c;
+    --text: #fafaf9;
+    --text-muted: #a8a29e;
+    --text-subtle: #78716c;
+    --border: #292524;
+    --border-strong: #44403c;
+    --accent: #fafaf9;
+    --accent-fg: #0c0a09;
+
+    --success: #4ade80;
+    --success-bg: rgba(22,163,74,.18);
+    --success-fg: #86efac;
+    --warning: #fbbf24;
+    --warning-bg: rgba(217,119,6,.18);
+    --warning-fg: #fcd34d;
+    --danger: #f87171;
+    --danger-bg: rgba(220,38,38,.18);
+    --danger-fg: #fca5a5;
+    --info: #60a5fa;
+    --info-bg: rgba(37,99,235,.18);
+    --info-fg: #93c5fd;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tabular { font-variant-numeric: tabular-nums; }
+  button { font: inherit; cursor: pointer; }
+  input, select { font: inherit; color: inherit; }
+  button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--info); outline-offset: 1px;
+  }
+
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 224px; flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    position: sticky; top: 0; height: 100vh;
+  }
+  .sidebar-header {
+    height: 48px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    width: 24px; height: 24px;
+    background: var(--accent);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-dot { width: 8px; height: 8px; background: var(--accent-fg); border-radius: 2px; }
+  .brand { font-weight: 600; font-size: 13px; letter-spacing: -0.01em; }
+  .nav { padding: 8px; flex: 1; }
+  .nav-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-subtle); padding: 8px 8px 4px; font-weight: 600;
+  }
+  .nav-item {
+    width: 100%;
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 6px;
+    background: transparent; border: none;
+    color: var(--text-muted); font-size: 13px;
+    text-align: left;
+    transition: background .12s, color .12s;
+  }
+  .nav-item:hover { background: var(--surface-2); color: var(--text); }
+  .nav-item[aria-current="page"] { background: var(--surface-2); color: var(--text); font-weight: 500; }
+  .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+  .sidebar-footer { padding: 8px; border-top: 1px solid var(--border); }
+
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .topbar {
+    height: 48px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 24px; gap: 12px;
+    background: var(--bg);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .breadcrumb { font-size: 13px; }
+  .breadcrumb .sep { color: var(--text-subtle); margin: 0 6px; }
+  .breadcrumb .crumb-muted { color: var(--text-muted); }
+  .breadcrumb .crumb-active { color: var(--text); font-weight: 500; }
+  .topbar-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .topbar > div:last-child { display: flex; gap: 8px; align-items: center; }
+
+  @media (max-width: 700px) {
+    .import-btn-text { display: none; }
+    #auth-btn span { display: none; }
+  }
+
+  .content { padding: 24px; max-width: 1400px; width: 100%; margin: 0 auto; }
+  .filters {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-bottom: 24px;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 28px; padding: 0 10px;
+    background: var(--surface-2);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 12px; font-weight: 500;
+    color: var(--text);
+    transition: background .12s;
+  }
+  .chip:hover { background: var(--surface-3); }
+  .chip.active { background: var(--accent); color: var(--accent-fg); }
+  .chip select {
+    background: transparent; border: none; outline: none;
+    color: inherit; font: inherit; padding: 0; cursor: pointer;
+    appearance: none; -webkit-appearance: none;
+  }
+  .chip select option { background: var(--surface); color: var(--text); }
+  .chip-label { color: var(--text-muted); font-weight: 400; }
+  .chip.active .chip-label { color: var(--accent-fg); opacity: 0.7; }
+  .chip-clear {
+    margin-left: 0; padding: 0 8px; height: 28px;
+    background: transparent; border: none; border-radius: 999px;
+    color: var(--text-muted); font-size: 12px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .chip-clear:hover { background: var(--surface-2); color: var(--text); }
+
+  .iconbtn {
+    width: 30px; height: 30px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    transition: background .12s, color .12s;
+  }
+  .iconbtn:hover { background: var(--surface-2); color: var(--text); }
+  .iconbtn svg { width: 14px; height: 14px; }
+
+  .btn {
+    height: 32px; padding: 0 12px;
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; font-size: 13px; font-weight: 500;
+    color: var(--text);
+    transition: background .12s, border-color .12s;
+  }
+  .btn:hover { background: var(--surface-2); border-color: var(--border-strong); }
+  .btn-primary {
+    background: var(--accent); color: var(--accent-fg); border-color: var(--accent);
+  }
+  .btn-primary:hover { opacity: 0.9; background: var(--accent); }
+  .btn svg { width: 14px; height: 14px; }
+  .btn-sm { height: 28px; padding: 0 10px; font-size: 12px; }
+  .btn-danger { color: var(--danger-fg); border-color: var(--danger-bg); }
+  .btn-danger:hover { background: var(--danger-bg); }
+
+  /* === HERO === */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+  }
+  .hero { margin-bottom: 16px; }
+  .hero-row {
+    display: flex; flex-wrap: wrap; justify-content: space-between;
+    align-items: flex-start; gap: 16px; margin-bottom: 14px;
+  }
+  .hero-label {
+    font-size: 11px; font-weight: 500; color: var(--text-muted);
+    margin-bottom: 6px; letter-spacing: 0.02em;
+  }
+  .hero-value {
+    font-size: 32px; font-weight: 600; letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .hero-value.danger { color: var(--danger-fg); }
+  .badge {
+    display: inline-flex; align-items: center;
+    font-size: 11px; font-weight: 500;
+    padding: 2px 8px; border-radius: 4px;
+    margin-left: 10px; vertical-align: middle;
+  }
+  .badge-success { background: var(--success-bg); color: var(--success-fg); }
+  .badge-warning { background: var(--warning-bg); color: var(--warning-fg); }
+  .badge-danger { background: var(--danger-bg); color: var(--danger-fg); }
+  .badge-critical { background: var(--accent); color: var(--accent-fg); }
+  .badge-neutral { background: var(--surface-2); color: var(--text-muted); }
+
+  .hero-meta { text-align: right; font-size: 12px; color: var(--text-muted); }
+  .hero-meta div { margin-top: 2px; }
+  .hero-bar { height: 6px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .hero-bar-fill { height: 100%; transition: width .4s ease; }
+  .fill-success { background: var(--success); }
+  .fill-warning { background: var(--warning); }
+  .fill-danger { background: var(--danger); }
+  .fill-critical { background: var(--accent); }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .metric {
+    background: var(--surface-2);
+    border-radius: 6px;
+    padding: 12px 14px;
+  }
+  .metric-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+  .metric-value { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; }
+  .metric-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+  .trend-up { color: var(--danger-fg); }
+  .trend-down { color: var(--success-fg); }
+
+  .two-col { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
+
+  .section { margin-bottom: 24px; }
+  .section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; gap: 12px; }
+  .section-title { font-size: 13px; font-weight: 600; }
+  .section-action { font-size: 11px; color: var(--text-subtle); }
+  .section-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* === BAR LIST === */
+  .bar-list { display: flex; flex-direction: column; gap: 8px; }
+  .bar-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 140px) 1fr minmax(80px, auto);
+    align-items: center;
+    gap: 12px;
+    padding: 4px 8px;
+    margin: 0 -8px;
+    border-radius: 4px;
+    background: transparent; border: none;
+    text-align: left;
+    transition: background .12s;
+  }
+  .bar-row.clickable { cursor: pointer; }
+  .bar-row.clickable:hover { background: var(--surface-2); }
+  .bar-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-name.others { color: var(--text-muted); }
+  .bar-track { height: 6px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--text); transition: width .3s ease; }
+  .bar-value { font-size: 12px; text-align: right; }
+  .bar-secondary { font-size: 10px; color: var(--text-subtle); display: block; }
+
+  /* === TABELA === */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: var(--surface-2);
+    text-align: left; padding: 8px 14px;
+    font-size: 11px; font-weight: 500;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  thead th.right { text-align: right; }
+  tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-2); }
+  td.right { text-align: right; }
+  td.muted { color: var(--text-muted); }
+  td.truncate { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* setor editável */
+  .editable {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 6px; border-radius: 4px;
+    cursor: pointer; transition: background .12s;
+    max-width: 100%;
+  }
+  .editable:hover { background: var(--surface-3); }
+  .editable .pencil { opacity: 0; transition: opacity .12s; flex-shrink: 0; }
+  .editable:hover .pencil { opacity: 0.6; }
+  .editable.unspecified { color: var(--warning-fg); font-style: italic; }
+
+  .editable-text {
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  .insights {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 8px; margin-bottom: 24px;
+  }
+  .insight {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    text-align: left;
+    transition: border-color .12s;
+  }
+  .insight.clickable:hover { border-color: var(--border-strong); cursor: pointer; }
+  .insight-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
+  .insight-title { font-size: 13px; font-weight: 600; line-height: 1.3; }
+  .insight-value { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .insight.success { background: var(--success-bg); border-color: transparent; color: var(--success-fg); }
+  .insight.success .insight-label, .insight.success .insight-value { color: var(--success-fg); opacity: 0.85; }
+  .insight.warning { background: var(--warning-bg); border-color: transparent; color: var(--warning-fg); }
+  .insight.warning .insight-label, .insight.warning .insight-value { color: var(--warning-fg); opacity: 0.85; }
+  .insight.danger { background: var(--danger-bg); border-color: transparent; color: var(--danger-fg); }
+  .insight.danger .insight-label, .insight.danger .insight-value { color: var(--danger-fg); opacity: 0.85; }
+
+  /* === CHART === */
+  .chart-svg { width: 100%; height: 240px; display: block; }
+  .chart-svg .grid { stroke: var(--border); stroke-width: 1; stroke-dasharray: 2 3; }
+  .chart-svg text { fill: var(--text-muted); font-size: 10px; font-family: inherit; }
+  .chart-svg .line-spent { stroke: var(--text); stroke-width: 1.5; fill: none; }
+  .chart-svg .line-budget { stroke: var(--text-muted); stroke-width: 1.5; fill: none; stroke-dasharray: 4 4; }
+  .chart-svg .dot { fill: var(--bg); stroke: var(--text); stroke-width: 1.5; }
+  .chart-legend { display: flex; gap: 16px; font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+  .chart-legend .swatch { width: 12px; height: 2px; display: inline-block; vertical-align: middle; margin-right: 6px; }
+
+  /* === BUDGET === */
+  .month-row { margin-bottom: 14px; }
+  .month-header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  .month-name { font-weight: 500; font-size: 13px; }
+  .month-meta { font-size: 12px; color: var(--text-muted); }
+  .month-bar { height: 6px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+
+  .alert-info {
+    display: flex; gap: 12px; padding: 14px;
+    background: var(--info-bg); color: var(--info-fg);
+    border-radius: 6px; font-size: 13px;
+  }
+  .alert-info svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; }
+
+  /* === SEARCH === */
+  .search-wrap { position: relative; margin-bottom: 16px; }
+  .search-input {
+    width: 100%; height: 36px;
+    padding: 0 12px 0 36px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    outline: none;
+    transition: border-color .12s;
+  }
+  .search-input:focus { border-color: var(--info); }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--text-subtle); pointer-events: none; }
+
+  .empty { text-align: center; padding: 48px 0; color: var(--text-muted); font-size: 13px; }
+  .hidden { display: none !important; }
+
+  /* === MODAL === */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+    padding: 16px;
+  }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    max-width: 480px; width: 100%;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+  }
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+  .modal-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 16px; }
+  .form-row { margin-bottom: 12px; }
+  .form-label {
+    display: block;
+    font-size: 12px; color: var(--text-muted); font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .form-input, .form-select {
+    width: 100%; height: 36px;
+    padding: 0 10px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    outline: none;
+    color: var(--text);
+    transition: border-color .12s;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--info); }
+  .modal-footer {
+    display: flex; gap: 8px; justify-content: flex-end;
+    margin-top: 20px;
+  }
+
+  /* === TOAST === */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent); color: var(--accent-fg);
+    padding: 10px 16px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    z-index: 200;
+    animation: toastIn .2s ease;
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translate(-50%, 8px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+
+  /* === RECARGAS === */
+  .recharge-list { display: flex; flex-direction: column; }
+  .recharge-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 140px 100px;
+    gap: 16px;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .recharge-row:last-child { border-bottom: none; }
+  .recharge-row:hover { background: var(--surface-2); }
+  .recharge-date { font-size: 12px; color: var(--text-muted); }
+  .recharge-month {
+    text-transform: capitalize;
+    font-weight: 500;
+  }
+  .recharge-amount { text-align: right; font-weight: 500; }
+  .recharge-actions { text-align: right; }
+  .recharge-actions button {
+    background: transparent; border: none;
+    padding: 4px 6px; border-radius: 4px;
+    color: var(--text-muted);
+  }
+  .recharge-actions button:hover { color: var(--text); background: var(--surface-3); }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .sidebar { width: 56px; }
+    .sidebar-header .brand, .nav-label, .nav-item span:not(.nav-icon-wrap), .sidebar-footer button span { display: none; }
+    .nav-item { justify-content: center; padding: 8px; }
+    .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .insights { grid-template-columns: 1fr; }
+    .content { padding: 16px; }
+    .topbar { padding: 0 16px; }
+    .hero-value { font-size: 24px; }
+    .recharge-row { grid-template-columns: 80px 1fr 100px; gap: 8px; }
+    .recharge-actions { display: none; }
+  }
+
+  /* === CUSTOM DROPDOWN (substitui select nativo feio) === */
+  .dropdown {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+  .dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    background: var(--surface-2);
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    transition: background .12s;
+    white-space: nowrap;
+    max-width: 280px;
+  }
+  .dropdown-trigger:hover { background: var(--surface-3); }
+  .dropdown-trigger.active {
+    background: var(--accent);
+    color: var(--accent-fg);
+  }
+  .dropdown-trigger .label {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+  .dropdown-trigger.active .label {
+    color: var(--accent-fg);
+    opacity: 0.7;
+  }
+  .dropdown-trigger .value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+  }
+  .dropdown-trigger svg {
+    width: 12px;
+    height: 12px;
+    opacity: 0.6;
+    transition: transform .15s;
+  }
+  .dropdown.open .dropdown-trigger svg {
+    transform: rotate(180deg);
+  }
+
+  .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 50;
+    min-width: 220px;
+    max-width: 360px;
+    max-height: 320px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: dropdownIn .12s ease-out;
+  }
+  [data-theme="dark"] .dropdown-menu {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 4px 8px rgba(0,0,0,0.3);
+  }
+  @keyframes dropdownIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .dropdown-search {
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .dropdown-search input {
+    width: 100%;
+    height: 30px;
+    padding: 0 10px;
+    background: var(--surface-2);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 12px;
+    color: var(--text);
+    outline: none;
+  }
+  .dropdown-search input:focus { border-color: var(--info); background: var(--surface); }
+  .dropdown-options {
+    overflow-y: auto;
+    flex: 1;
+    padding: 4px;
+  }
+  .dropdown-option {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 10px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    transition: background .1s;
+  }
+  .dropdown-option:hover, .dropdown-option.focused {
+    background: var(--surface-2);
+  }
+  .dropdown-option.selected {
+    background: var(--surface-2);
+    font-weight: 500;
+  }
+  .dropdown-option .check {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    color: var(--info);
+    opacity: 0;
+  }
+  .dropdown-option.selected .check { opacity: 1; }
+  .dropdown-option-text {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dropdown-option-count {
+    color: var(--text-subtle);
+    font-size: 10px;
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .dropdown-empty {
+    padding: 16px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+
+  /* Pending badge na sidebar */
+  .pending-badge {
+    margin-left: auto;
+    background: var(--warning-bg);
+    color: var(--warning-fg);
+    font-size: 10px; font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 999px;
+    min-width: 18px; text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .nav-item[aria-current="page"] .pending-badge {
+    background: var(--warning);
+    color: var(--bg);
+  }
+
+  /* Linha "soft warning" dentro do dropdown */
+  .dropdown-option .meta-tag {
+    font-size: 9px;
+    color: var(--warning-fg);
+    background: var(--warning-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Cards de pendência */
+  .pending-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .pending-card-info { flex: 1; min-width: 200px; }
+  .pending-card-meta {
+    display: flex; gap: 12px;
+    font-size: 11px; color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .pending-card-meta .tag-warn {
+    background: var(--warning-bg);
+    color: var(--warning-fg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+  .pending-card-meta .tag-ok {
+    background: var(--success-bg);
+    color: var(--success-fg);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 500;
+  }
+  .pending-card-product {
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  .pending-card-detail {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .pending-card-amount {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .pending-card-amount .value {
+    font-size: 15px; font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .pending-card-amount .date {
+    font-size: 11px; color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo"><div class="logo-dot"></div></div>
+      <span class="brand">Fundo de caixa</span>
+    </div>
+    <nav class="nav" id="nav">
+      <div class="nav-label">Painéis</div>
+      <button class="nav-item" data-tab="overview" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+        <span>Visão geral</span>
+      </button>
+      <button class="nav-item" data-tab="sectors">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="7"/><rect x="12" y="7" width="3" height="11"/><rect x="17" y="14" width="3" height="4"/></svg>
+        <span>Setores</span>
+      </button>
+      <button class="nav-item" data-tab="budget">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <span>Orçamento</span>
+      </button>
+      <button class="nav-item" data-tab="recharges">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="M5 9l7-7 7 7"/><circle cx="12" cy="16" r="3"/></svg>
+        <span>Recargas</span>
+      </button>
+      <button class="nav-item" data-tab="pending">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+        <span>Pendências</span>
+        <span id="pending-count" class="pending-badge hidden"></span>
+      </button>
+      <button class="nav-item" data-tab="history">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 3"/></svg>
+        <span>Histórico</span>
+      </button>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="nav-item" id="reset-edits" title="Apagar edições salvas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+        <span>Resetar edições</span>
+      </button>
+      <button class="nav-item" id="theme-toggle">
+        <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span id="theme-label">Modo escuro</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div class="breadcrumb">
+        <span class="crumb-muted">Fundo de caixa</span>
+        <span class="sep">/</span>
+        <span class="crumb-active" id="crumb-active">Visão geral</span>
+      </div>
+      <div class="topbar-actions" id="topbar-actions"></div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button class="btn btn-sm hidden" id="import-btn" title="Importar Excel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><rect x="3" y="15" width="18" height="6" rx="1"/></svg>
+          <span class="import-btn-text">Importar Excel</span>
+        </button>
+        <button class="btn btn-sm" id="auth-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>
+          <span>Entrar</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="filters" id="filters">
+        <div class="dropdown" data-filter="month">
+          <button class="dropdown-trigger" data-trigger>
+            <span class="label">Mês</span>
+            <span class="value" data-value-display>—</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+        <div class="dropdown" data-filter="sector">
+          <button class="dropdown-trigger" data-trigger>
+            <span class="label">Setor</span>
+            <span class="value" data-value-display>—</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+        <div class="dropdown" data-filter="supplier">
+          <button class="dropdown-trigger" data-trigger>
+            <span class="label">Fornecedor</span>
+            <span class="value" data-value-display>—</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+        <div class="dropdown" data-filter="type">
+          <button class="dropdown-trigger" data-trigger>
+            <span class="label">Tipo</span>
+            <span class="value" data-value-display>—</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+          </button>
+        </div>
+        <button class="chip-clear hidden" id="clear-filters">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+          Limpar
+        </button>
+      </div>
+
+      <div id="tab-overview" class="tab-panel"></div>
+      <div id="tab-sectors" class="tab-panel hidden"></div>
+      <div id="tab-budget" class="tab-panel hidden"></div>
+      <div id="tab-recharges" class="tab-panel hidden"></div>
+      <div id="tab-pending" class="tab-panel hidden"></div>
+      <div id="tab-history" class="tab-panel hidden"></div>
+    </div>
+  </main>
+</div>
+
+<div id="modal-root"></div>
+<div id="toast-root"></div>
+
+<script type="module">
+// =================================================
+// FIREBASE
+// =================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, getDocs, setDoc, deleteDoc,
+  onSnapshot, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBcRdOZnGlVJRaBfUBTdZVtHJa3qHvdb9k",
+  authDomain: "fundo-caixa-dashboard.firebaseapp.com",
+  projectId: "fundo-caixa-dashboard",
+  storageBucket: "fundo-caixa-dashboard.firebasestorage.app",
+  messagingSenderId: "570850823569",
+  appId: "1:570850823569:web:6b358c18d16c82df151e30"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// =================================================
+// DATA — vem do Firestore
+// =================================================
+let RAW_DATA = { janeiro: { budget: 0, transactions: [] }, fevereiro: { budget: 0, transactions: [] }, "março": { budget: 0, transactions: [] }, abril: { budget: 0, transactions: [] } };
+let firestoreRecharges = [];
+let currentUser = null;
+let dataLoaded = false;
+
+const BOOTSTRAP_DATA = {"janeiro":{"budget":5000.0,"transactions":[{"data":"2026-01-05","produto":"COMPRA DE 2 HUB CABO EXTENSOR ( 2* R$ 19,00 + R$ 0,00 )","quantidade":2.0,"valor_total":38.0,"valor_unitario":19.0,"frete":0.0,"detalhamento":"Para auxiliar no uso de cabos na bancada do PDV Goiania - iPhone - Shopping Flamboyant - Q P13","setor":"Goiania - IPhone - Shopping Flamboyant - Q P13","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_0"},{"data":"2026-01-07","produto":"COMPRA DE 3 KITS COM 6 Estiletes 18mm ( 3* R$ 60,+ R$ 3,99 )","quantidade":3.0,"valor_total":183.99,"valor_unitario":60.0,"frete":3.99,"detalhamento":"Para uso no Estoque Geral","setor":"Estoque Geral","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_1"},{"data":"2026-01-07","produto":"COMPRA DE 3 FONTES CHAVEADA 24V 50a (3*R$ 152,78 + R$ 0,00 )","quantidade":3.0,"valor_total":458.34,"valor_unitario":152.78,"frete":0.0,"detalhamento":"Troca de equipamento danificado no PDV em Rio de Janeiro - VX Case Fashion - Barra Shopping - Loja 115","setor":"Rio De Janeiro - VX Case Fashion - Barra Shopping - Loja 115","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_2"},{"data":"2026-01-12","produto":"PIX ENVIADO PARA REALIZAÇÃO DE RECARGAS DE NUMEROS CORPORATIVOS","quantidade":1.0,"valor_total":240.0,"valor_unitario":240.0,"frete":0.0,"detalhamento":"PIX ENVIADO PARA REALIZAÇÃO DE RECARGAS DE NUMEROS CORPORATIVOS","setor":"Galpão","fornecedor":"Mercado PAGO","tipo":"compra","id":"janeiro_3"},{"data":"2026-01-13","produto":"COMPRA DE 3 FARDAMENTOS NA COR PRETA (3* R$ 37,00 + R$ 0,00 )","quantidade":3.0,"valor_total":111.0,"valor_unitario":37.0,"frete":0.0,"detalhamento":"COMPRA DE FARDAMENTOS PARA PROMOÇÃO NO ESTOQUE GERAL","setor":"Estoque Geral","fornecedor":"IVON Camisas","tipo":"compra","id":"janeiro_4"},{"data":"2026-01-13","produto":"COMPRA DE 3 ROLOS ADESIVOS ETIQUETA  BATERIA ( 3* R$ 109,00 + R$ 0,00 )","quantidade":3.0,"valor_total":327.0,"valor_unitario":109.0,"frete":0.0,"detalhamento":"Compra de Adesivo - Etiqueta para identificar caixas com baterias ao envios aos PDV","setor":"Estoque Geral","fornecedor":"IVON Camisas","tipo":"compra","id":"janeiro_5"},{"data":"2026-01-13","produto":"COMPRA DE 10  ACENDEDOR DE CARREGADOR ( 10* R$ 18,68 + R$ 0,00 )","quantidade":10.0,"valor_total":186.8,"valor_unitario":18.68,"frete":0.0,"detalhamento":"Compra de produto para Testes no setor Visual Merchadising","setor":"Visual Merchadising","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_6"},{"data":"2026-01-13","produto":"COMPRA DE 1 SOLDA  ESTANHO 1MM (*1 R$ 67,88 + R$ 0,00 )","quantidade":1.0,"valor_total":75.87,"valor_unitario":67.88,"frete":7.99,"detalhamento":"para Repor Estoque Laboratorio Hardware","setor":"Laboratorio Hardware","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_7"},{"data":"2026-01-13","produto":"COMPRA DE 1 KIT C/ 4 MIL ETIQUETAS 10X15 ( 1* R$ 236,43 + R$ 2,99 )","quantidade":1.0,"valor_total":239.42,"valor_unitario":236.43,"frete":2.99,"detalhamento":"para Repor Estoque do Setor Logistica","setor":"Logistica","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_8"},{"data":"2026-01-14","produto":"COMPRA DE 1 SOLDA  ESTANHO 1MM (*1 R$ 191,00  + R$ 0,00 )","quantidade":1.0,"valor_total":191.0,"valor_unitario":191.0,"frete":0.0,"detalhamento":"para Repor Estoque Laboratorio Hardware ( Emergencial )","setor":"Laboratorio Hardware","fornecedor":"Casa De Peças E Eletronicos","tipo":"compra","id":"janeiro_9"},{"data":"2026-01-14","produto":"PIX ENVIADO PARA REALIZAÇÃO DE RECARGAS DE NUMEROS CORPORATIVOS","quantidade":1.0,"valor_total":20.0,"valor_unitario":20.0,"frete":0.0,"detalhamento":"PIX ENVIADO PARA REALIZAÇÃO DE RECARGAS DE NUMEROS CORPORATIVOS","setor":"Galpão","fornecedor":"Mercado PAGO","tipo":"compra","id":"janeiro_10"},{"data":"2026-01-14","produto":"PIX ENVIADO PARA REALIZAÇÃO DE RECARGAS DE NUMEROS CORPORATIVOS","quantidade":1.0,"valor_total":20.0,"valor_unitario":20.0,"frete":0.0,"detalhamento":"PIX ENVIADO PARA REALIZAÇÃO DE RECARGAS DE NUMEROS CORPORATIVOS","setor":"Galpão","fornecedor":"Mercado PAGO","tipo":"compra","id":"janeiro_11"},{"data":"2026-01-14","produto":"COMPRA DE 1 LUVA SEGURANÇA TERMICA ( 1* R$ 77,85 + R$ 0,00 FRETE   )","quantidade":1.0,"valor_total":77.85,"valor_unitario":77.85,"frete":0.0,"detalhamento":"Compra de produto para uso no Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_12"},{"data":"2026-01-14","produto":"COMPRA DE 2 CAIXA CORRESPODENCIA ACRILICO ( 2* R$ 87,62 + R$ 0,00 FRETE   )","quantidade":2.0,"valor_total":87.62,"valor_unitario":43.81,"frete":0.0,"detalhamento":"Para uso no Setor Juridico","setor":"Juridico","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_13"},{"data":"2026-01-15","produto":"PIX ENVIADO PARA REALIZAÇÃO DE RECARGAS DE NUMEROS CORPORATIVOS","quantidade":1.0,"valor_total":440.0,"valor_unitario":440.0,"frete":0.0,"detalhamento":"PIX ENVIADO PARA REALIZAÇÃO DE RECARGAS DE NUMEROS CORPORATIVOS","setor":"Galpão","fornecedor":"Mercado PAGO","tipo":"compra","id":"janeiro_14"},{"data":"2026-01-15","produto":"COMPRA DE 1 TECLADO PARA NOTEBOOK DELL INSPIRON ( 1* R$ 44,17 + R$ 17,99 FRETE  )","quantidade":1.0,"valor_total":62.16,"valor_unitario":44.17,"frete":17.99,"detalhamento":"","setor":"Não especificado","fornecedor":"Não especificado","tipo":"compra","id":"janeiro_15"},{"data":"2026-01-20","produto":"COMPRA DE 1 KIT C/ 10 CADEADOS  20MM (1* R$ 111,63 + R$ 7,99 FRETE  )","quantidade":1.0,"valor_total":119.62,"valor_unitario":111.63,"frete":7.99,"detalhamento":"Para uso no Estoque geral nos Armarios de Itens pessoais","setor":"Estoque Geral","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_16"},{"data":"2026-01-20","produto":"COMPRA DE 1 QUADRO 120X90CM (1* R$ 107,66 + R$ 1,99 FRETE  )","quantidade":1.0,"valor_total":109.65,"valor_unitario":107.66,"frete":1.99,"detalhamento":"Para uso no Estoque geral nas atividades do dia no Galpão 5","setor":"Estoque Geral","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_17"},{"data":"2026-01-21","produto":"REEMBOLSO AO FUNCIONARIO GUILHERME NERI POR COMPRA DE PEÇA PARA USO NA CONFEEÇÃO DO DISPLAY NOS QUIOSQUES","quantidade":1.0,"valor_total":90.0,"valor_unitario":90.0,"frete":0.0,"detalhamento":"REEMBOLSO AO FUNCIONARIO GUILHERME NERI POR COMPRA DE PEÇA PARA USO NA CONFEEÇÃO DO DISPLAY NOS QUIOSQUES","setor":"Quotes","fornecedor":"Não especificado","tipo":"reembolso","id":"janeiro_18"},{"data":"2026-01-22","produto":"COMPRA DE 1  KIT REPARO COM REGULAGEM (1* R$ 140,00 + R$ 57,00 )","quantidade":1.0,"valor_total":197.0,"valor_unitario":140.0,"frete":57.0,"detalhamento":"Compra de produto para uso no Setor Quotes","setor":"Quotes","fornecedor":"Frantech","tipo":"compra","id":"janeiro_19"},{"data":"2026-01-23","produto":"COMPRA DE VENTILADOR DE MESA 40 CM ( 1* R$ 169,73 + R$ 0,00  FRETE  )","quantidade":1.0,"valor_total":169.73,"valor_unitario":169.73,"frete":0.0,"detalhamento":"Troca de equipamento no PDV em Salvador - Galaxy - Salvador Shopping - Q 122","setor":"Salvador - Galaxy - Salvador Shopping - Q 122","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_20"},{"data":"2026-01-23","produto":"COMPRA DE 3 KITS C/ 10 CANTONEIRA ( 3* R$ 34,34 + R$ 0,00  FRETE  )","quantidade":3.0,"valor_total":103.02,"valor_unitario":34.34,"frete":0.0,"detalhamento":"Para uso nos PDVS  Solicitação de Rodrigo Pereira","setor":"ADM Estoque","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_21"},{"data":"2026-01-23","produto":"COMPRA DE 10 UND FITA KAPTON   ( 10* R$ 20,23 + R$ 0,00 FRETE  )","quantidade":10.0,"valor_total":202.3,"valor_unitario":20.23,"frete":0.0,"detalhamento":"para Repor Estoque Laboratorio Hardware","setor":"Laboratorio Hardware","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_22"},{"data":"2026-01-26","produto":"COMPRA DE 10 UND CABO HDMI ( 10* R$ 25,34 + R$ 0,00  FRETE  )","quantidade":6.0,"valor_total":152.04,"valor_unitario":25.34,"frete":0.0,"detalhamento":"para reposição de estoque do setor Infraestutura","setor":"Infraestutura","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_23"},{"data":"2026-01-26","produto":"COMPRA DE  1 CONVERSOR DIGITAL ( 1* R$ 78,90 + R$ 0,00 FRETE  )","quantidade":1.0,"valor_total":78.9,"valor_unitario":78.9,"frete":0.0,"detalhamento":"troca de equipamento no PDV em  RJ - BARRA SHOPPING - L106","setor":"RJ - Barra Shopping - L106","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_24"},{"data":"2026-01-26","produto":"COMPRA DE 2 MOUSES LOGITECH  (2* R$ 49,90 + R$ 0,00  )","quantidade":2.0,"valor_total":99.8,"valor_unitario":49.9,"frete":0.0,"detalhamento":"Subtituição de mouses defeituosos no pdv QP12 - Barra Shopping - Rio de Janeiro","setor":"Rio De Janeiro - VX Case - Barra Shopping - Q P12","fornecedor":"Amazon","tipo":"compra","id":"janeiro_25"},{"data":"2026-01-26","produto":"COMPRA DE 1 KIT ESTILETE  9mm + TRENA 3m x 16mm ( 1* R$ 44,77 + R$ 0,00  FRETE  )","quantidade":1.0,"valor_total":44.77,"valor_unitario":44.77,"frete":0.0,"detalhamento":"Para uso no Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_26"},{"data":"2026-01-27","produto":"COMPRA  2 ROLAMENTO DE ESFERA ( 2* R$ 28,48 + R$ 0,00 FRETE  )","quantidade":2.0,"valor_total":56.96,"valor_unitario":28.48,"frete":0.0,"detalhamento":"Compra de produto para testes no Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_27"},{"data":"2026-01-27","produto":"COMPRA DE 1 SWITCH INTELBRAS   ( 1* R$ 100,02 + R$ 0,00 FRETE )","quantidade":1.0,"valor_total":100.02,"valor_unitario":100.02,"frete":0.0,"detalhamento":"Compra de produto para  Disponibilização de novas portas de rede no PDV Em BELO HORIZONTE - S. DEL REY - QS1690","setor":"BELO Horizonte - S. DEL REY - Qs1690","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_28"},{"data":"2026-01-29","produto":"COMPRA DE 2 HASTES DE FERRO ( 2* R$ 45,00 + R$ 0,00 FRETE  )","quantidade":2.0,"valor_total":90.0,"valor_unitario":45.0,"frete":0.0,"detalhamento":"Para testes no Setor Quotes","setor":"Quotes","fornecedor":"Hiper Ferros","tipo":"compra","id":"janeiro_29"},{"data":"2026-01-29","produto":"COMPRA DE 2 KIT C/ 100 UND CARTÃO CRACHÁ (2* R$  65,32 + R$ 0,00 )","quantidade":2.0,"valor_total":130.64,"valor_unitario":65.32,"frete":0.0,"detalhamento":"Repor estoque do Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"janeiro_30"}]},"fevereiro":{"budget":5000.0,"transactions":[{"data":"2026-02-03","produto":"REEMBOLSO AO COLABORADOR THIAGO DE JESUS CONCEIÇÃO POR COMPRA DE 3 UND DE GRAXA DE SILICONE (3* R$ 7,90 + R$ 0,00 )","quantidade":3.0,"valor_total":23.7,"valor_unitario":7.9,"frete":0.0,"detalhamento":"Para uso no Setor Quotes","setor":"Quotes","fornecedor":"Não especificado","tipo":"reembolso","id":"fevereiro_0"},{"data":"2026-02-03","produto":"COMPRA DE 1 C/ 500 und  SACOS PLASTICO CORREIOS 40X30 ( 1* R$ 175,00  + R$ 0,00 )","quantidade":1.0,"valor_total":175.0,"valor_unitario":0.0,"frete":0.0,"detalhamento":"Para uso no Setor Logistica","setor":"Logistica","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_1"},{"data":"2026-02-05","produto":"COMPRA DE 4 BOBINA PICOTADA DE 5K ( 4* R$ 51,5475 + R$ 0,00 )","quantidade":4.0,"valor_total":206.19,"valor_unitario":51.55,"frete":0.0,"detalhamento":"para uso no Estoque Geral","setor":"Estoque Geral","fornecedor":"Pellegrini Embalagens","tipo":"compra","id":"fevereiro_2"},{"data":"2026-02-04","produto":"REEMBOLSO AO COLABORADOR CAIO ROCHA BRITO POR  COMPRA DE 3 LUVAS (3* R$ 30,63 + R$ 0,00 )","quantidade":3.0,"valor_total":91.9,"valor_unitario":30.63,"frete":0.0,"detalhamento":"para reposição de estoque do setor Quotes","setor":"Quotes","fornecedor":"Efortshop","tipo":"reembolso","id":"fevereiro_3"},{"data":"2026-02-06","produto":"COMPRA DE 5 KIT C/100 UND Plástico para Plastificação A3 ( 5* R$ 119,31 + R$ 0,00 )","quantidade":5.0,"valor_total":596.55,"valor_unitario":119.31,"frete":0.0,"detalhamento":"para reposição de estoque do setor Marketing Impresso","setor":"Marketing Impresso","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_4"},{"data":"2026-02-20","produto":"COMPRA DE 1 UND BATERIA PARA IPAD 12.9 ( 1*  R$ 318,80 + R$ 0,00 )","quantidade":1.0,"valor_total":318.8,"valor_unitario":318.8,"frete":0.0,"detalhamento":"COMPRA DE BATERIA  PARA MANUTENÇÃO DO IPAD DE ROGERIO","setor":"Logistica - Manutenção","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_5"},{"data":"2026-02-20","produto":"PAGAMENTO DO FRETE  DA  COMPRA DE 1 UND BATERIA PARA IPAD 12.9 ( 1*  R$ 318,80 + R$ 0,00 )","quantidade":1.0,"valor_total":61.0,"valor_unitario":61.0,"frete":0.0,"detalhamento":"COMPRA DE BATERIA  PARA MANUTENÇÃO DO IPAD DE ROGERIO ( PAGAMENTO FRETE R$ 61,00 )","setor":"Logistica - Manutenção","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_6"},{"data":"2026-02-23","produto":"COMPRA DE 1 KIT C/ 10 UND  BUCHA GESSO ( R$ 42,12 + R$ 0,00 )","quantidade":1.0,"valor_total":42.12,"valor_unitario":42.12,"frete":0.0,"detalhamento":"Inserção de equipamento para a Reforma do PDV em Belém - Iphone - Boulevard Shopping Belém - Loja 459","setor":"Belém - Iphone - Boulevard Shopping Belém - Loja 459","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_7"},{"data":"2026-02-23","produto":"COMPRA DE 1 SUPORTE PRA TV FIXO (1* R$ 21,00 + R$ 0,00 )","quantidade":1.0,"valor_total":21.0,"valor_unitario":21.0,"frete":0.0,"detalhamento":"Inserção de equipamento para a Reforma do PDV em Belém - Iphone - Boulevard Shopping Belém - Loja 459","setor":"Belém - Iphone - Boulevard Shopping Belém - Loja 460","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_8"},{"data":"2026-02-23","produto":"COMPRA DE 1 ALICATE ( 1* R$  38,95 + R$ 0,00 )","quantidade":1.0,"valor_total":38.95,"valor_unitario":38.95,"frete":0.0,"detalhamento":"Para uso no Estoque Geral Solicitado por  Jean menezes","setor":"Estoque Geral","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_9"},{"data":"2026-02-23","produto":"COMPRA DE 1 KIT C/ 100 UND Abraçadeiras Nylon 5 X 400mm ( 1* R$ 128,10 + R$ 0,00 )","quantidade":1.0,"valor_total":128.1,"valor_unitario":128.1,"frete":0.0,"detalhamento":"Para uso no Estoque Geral Solicitado por  Jean menezes","setor":"Estoque Geral","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_10"},{"data":"2026-02-23","produto":"COMPRA DE 1 DISPLAY ACRILICO PORTA FOLHA ( 1* R$ 19,70 + R$ 0,00 )","quantidade":1.0,"valor_total":19.7,"valor_unitario":19.7,"frete":0.0,"detalhamento":"Para uso no Setor Administrativo Estoque Solicitado Por Rodrigo pereira","setor":"ADM Estoque","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_11"},{"data":"2026-02-25","produto":"PAGAMENTO DE REPARO DE BASE HOT STAMPING COM TORNEIRO - SOLICITAÇÃO GUILHERME NERI","quantidade":1.0,"valor_total":280.0,"valor_unitario":280.0,"frete":0.0,"detalhamento":"PAGAMENTO REFERENTE A REPARO DA BASE DO HOT STAMPING COM TORNEIRO - GUILHERME NERI","setor":"Quotes","fornecedor":"Centro DE Usinagem","tipo":"compra","id":"fevereiro_12"},{"data":"2026-02-25","produto":"COMPRA DE 1 LIXEIRA  60L ( 1* R$ 118,36 + R$ 0,00 )","quantidade":1.0,"valor_total":118.36,"valor_unitario":118.36,"frete":0.0,"detalhamento":"Inserção de equipamento para a Reforma do PDV em Belém - Iphone - Boulevard Shopping Belém - Loja 459","setor":"Belém - Iphone - Boulevard Shopping Belém - Loja 459","fornecedor":"Magazine Luiza","tipo":"compra","id":"fevereiro_13"},{"data":"2026-02-25","produto":"COMPRA DE 2 UND DE COLA TEK BOND BASE D´ AGUA ( 2* R$ 34,87 + R$ 0,00 )","quantidade":2.0,"valor_total":69.74,"valor_unitario":34.87,"frete":0.0,"detalhamento":"Inserção de equipamento para a Reforma do PDV em Belém - Iphone - Boulevard Shopping Belém - Loja 459","setor":"Belém - Iphone - Boulevard Shopping Belém - Loja 459","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_14"},{"data":"2023-02-27","produto":"COMPRA DE 1 C/ 500 und  SACOS PLASTICO CORREIOS 40X30 ( 1* R$ 175,00  + R$ 16,99)","quantidade":1.0,"valor_total":191.99,"valor_unitario":175.0,"frete":16.99,"detalhamento":"Para uso no Setor Logistica","setor":"Logistica","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_15"},{"data":"2023-02-27","produto":"COMPRA DE 1 LIXEIRA 15L (1* R$ 34,84 + R$ 9,99 )","quantidade":1.0,"valor_total":44.83,"valor_unitario":34.84,"frete":9.99,"detalhamento":"Inserção de equipamento para a Reforma do PDV em Belém - Iphone - Boulevard Shopping Belém - Loja 459","setor":"Belém - Iphone - Boulevard Shopping Belém - Loja 459","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_16"},{"data":"2023-02-27","produto":"COMPRA DE 5 DISPENSER  50ML ( 5* R$ 6,55 + R$ 13,61 )","quantidade":5.0,"valor_total":46.38,"valor_unitario":6.55,"frete":13.61,"detalhamento":"Repor estoque do setor Laboratorio Hardware","setor":"Laboratorio Hardware","fornecedor":"99Fix","tipo":"compra","id":"fevereiro_17"},{"data":"2023-02-27","produto":"COMPRA DE 5 DISPENSER  50ML ( 5* R$ 13,90 + R$ 0,00)","quantidade":5.0,"valor_total":69.5,"valor_unitario":13.9,"frete":0.0,"detalhamento":"Repor estoque do setor Laboratorio Hardware","setor":"Laboratorio Hardware","fornecedor":"Mercado Livre","tipo":"compra","id":"fevereiro_18"}]},"março":{"budget":5000.0,"transactions":[{"data":"2026-03-02","produto":"COMPRA DE 10 UND DE Malha Dessoldadora ( 10* R$ 18,90 + R$ 18,06 )","quantidade":10.0,"valor_total":207.11,"valor_unitario":18.9,"frete":18.06,"detalhamento":"Repor estoque do setor Laboratorio Hardware","setor":"Laboratorio Hardware","fornecedor":"Cell Master","tipo":"compra","id":"março_0"},{"data":"2026-03-02","produto":"COMPRA DE  2 FILTRO DE LINHA  ( 2* R$  35,53 + R$ 0,00 )","quantidade":2.0,"valor_total":71.06,"valor_unitario":35.53,"frete":0.0,"detalhamento":"Para uso no Setor Laboratorio Hardware","setor":"Laboratorio Hardware","fornecedor":"Mercado Livre","tipo":"compra","id":"março_1"},{"data":"2026-03-02","produto":"COMPRA DE 3 TINTA UV SELANTE ( 3* R$ 44,07 + R$ 7,99 )","quantidade":3.0,"valor_total":140.2,"valor_unitario":44.07,"frete":7.99,"detalhamento":"Repor estoque do setor Laboratorio Hardware","setor":"Laboratorio Hardware","fornecedor":"Mercado Livre","tipo":"compra","id":"março_2"},{"data":"2026-03-02","produto":"COMPRA DE 1 KIT C/12 UND DE COLA INSTANTANEA ( 1* R$ 173,19  + R$ 9,99 )","quantidade":1.0,"valor_total":183.18,"valor_unitario":173.19,"frete":9.99,"detalhamento":"Repor estoque do setor Laboratorio Hardware","setor":"Laboratorio Hardware","fornecedor":"Mercado Livre","tipo":"compra","id":"março_3"},{"data":"2026-03-02","produto":"COMPRA  DE 2 KIT C/ 10 LAMINAS PARA ESTILETE (  2* R$ 29,43 + R$ 14,99 )","quantidade":2.0,"valor_total":73.85,"valor_unitario":29.43,"frete":14.99,"detalhamento":"para reposição de estoque do setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"março_4"},{"data":"2026-03-03","produto":"COMPRA DE 1  EXTENSOR HDMI RJ45 (  1* R$ 78,90 + R$ 8,99 )","quantidade":1.0,"valor_total":87.89,"valor_unitario":78.9,"frete":8.99,"detalhamento":"para reposição de estoque do setor Infraestutura","setor":"Infraestutura","fornecedor":"Mercado Livre","tipo":"compra","id":"março_5"},{"data":"2026-03-03","produto":"COMPRA DE 1 KIT PORCA GAIOLA  + PARAFUSO  ( 1* R$ 133,96 + R$ 0,00  )","quantidade":1.0,"valor_total":133.96,"valor_unitario":133.96,"frete":0.0,"detalhamento":"Inserção de equipamento para reforma do PDV em Maceió - iPhone - Parque Shop Maceio - Loja 1042","setor":"Maceió - IPhone - Parque Shop Maceio - Loja 1042","fornecedor":"Mercado Livre","tipo":"compra","id":"março_6"},{"data":"2026-03-06","produto":"COMPRA DE 3 PACOTES C/ 1000 UND HANG TABS  (4 *R$ 46,90 + R$ 0,00  )","quantidade":3.0,"valor_total":140.7,"valor_unitario":46.9,"frete":0.0,"detalhamento":"para uso no Estoque Geral","setor":"Estoque Geral","fornecedor":"Mercado Livre","tipo":"compra","id":"março_7"},{"data":"2026-03-10","produto":"COMPRA DE 1 FONTE MINI PC ( 1* R$ 97,00 + R$ 0,00 )","quantidade":1.0,"valor_total":97.0,"valor_unitario":97.0,"frete":0.0,"detalhamento":"para reposição de estoque do setor Infraestutura","setor":"Infraestutura","fornecedor":"Login","tipo":"compra","id":"março_8"},{"data":"2026-03-10","produto":"COMPRA DE 1 PAPEL SULFITE (1* R$ 71,39 + R$ 46,40 )","quantidade":1.0,"valor_total":117.79,"valor_unitario":71.39,"frete":46.4,"detalhamento":"para reposição de estoque do setor Quotes","setor":"Quotes","fornecedor":"Creative Copias","tipo":"compra","id":"março_9"},{"data":"2026-03-11","produto":"COMPRA DE 1 KIT ACRILICO C/ 12 UND  ( 1* R$ 141,18 + R$ 0,00 )","quantidade":1.0,"valor_total":141.18,"valor_unitario":141.18,"frete":0.0,"detalhamento":"para reposição de estoque do setor Visual  Merchadising","setor":"Visual Merchadising","fornecedor":"Mercado Livre","tipo":"compra","id":"março_10"},{"data":"2026-03-11","produto":"COMPRA DE 2 CAIXA TRANSPARENTE ( 2* R$ 37,84 + R$ 0,00 )","quantidade":2.0,"valor_total":75.68,"valor_unitario":37.84,"frete":0.0,"detalhamento":"Para gaurdar documentos no Setor RH","setor":"RH","fornecedor":"Magazine Luiza","tipo":"compra","id":"março_11"},{"data":"2026-03-12","produto":"COMPRA DE 1 SPRAY DOURADO ( 1* R$ 16,00 + R$ 0,00 )","quantidade":1.0,"valor_total":16.0,"valor_unitario":16.0,"frete":0.0,"detalhamento":"para reposição de estoque do setor Quotes","setor":"Quotes","fornecedor":"Não especificado","tipo":"compra","id":"março_12"},{"data":"2026-03-12","produto":"COMPRA DE 2 lATAS DE SPRAY CROMADO METALICO ( 2* R$ 37,90 + R$ 0,00 )","quantidade":2.0,"valor_total":75.8,"valor_unitario":37.9,"frete":0.0,"detalhamento":"para reposição de estoque do setor Quotes","setor":"Quotes","fornecedor":"CASA ELOY LTDA","tipo":"compra","id":"março_13"},{"data":"2026-03-12","produto":"COMPRA DE 2 LATAS DE SPRAY 1 DOURADO  E 1 PRETO  ( 2* R$ 29,00 + R$ 0,00 )","quantidade":2.0,"valor_total":58.0,"valor_unitario":29.0,"frete":0.0,"detalhamento":"para reposição de estoque do setor Quotes","setor":"Quotes","fornecedor":"Não especificado","tipo":"compra","id":"março_14"},{"data":"2026-03-13","produto":"COMPRA DE 1 PASTA DE POLIMENTO BLEND  METAL ( 1* R$ 52,62 + 35,99 )","quantidade":1.0,"valor_total":88.61,"valor_unitario":52.62,"frete":35.99,"detalhamento":"Compra de produto para teste no Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"março_15"},{"data":"2026-03-13","produto":"COMPRA DE 1 PASTA DE POLIMENTO MOTHERS MAG & ALUMINIUM ( 1* R$ 59,89 + 9,99)","quantidade":1.0,"valor_total":69.88,"valor_unitario":59.89,"frete":9.99,"detalhamento":"Compra de produto para teste no Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"março_16"},{"data":"2026-03-13","produto":"COMPRA DE 1 PASTA DE POLIMENTO AUTOSOL ( 1* R$ 93,00 + R$ 4,65 )","quantidade":1.0,"valor_total":88.35,"valor_unitario":93.0,"frete":4.65,"detalhamento":"Compra de produto para teste no Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"março_17"},{"data":"2026-03-13","produto":"COMPRA DE 1 KIT SACO ADESIVADO TRANSPARENTE 12X25","quantidade":1.0,"valor_total":193.66,"valor_unitario":193.66,"frete":0.0,"detalhamento":"para uso no Estoque Geral","setor":"Estoque Geral","fornecedor":"Mercado Livre","tipo":"compra","id":"março_18"},{"data":"2026-03-16","produto":"COMPRA DE 1 UND BATERIA PARA IPAD 12.9 ( 2*  R$ 318,80 + R$ 0,00 )","quantidade":2.0,"valor_total":637.6,"valor_unitario":318.8,"frete":0.0,"detalhamento":"COMPRA DE BATERIA  PARA MANUTENÇÃO DO IPAD DE ROGERIO","setor":"Logistica - Manutenção","fornecedor":"Mercado Livre","tipo":"compra","id":"março_19"},{"data":"2026-03-16","produto":"PAGAMENTO DO FRETE  DA  COMPRA DE 2 UND BATERIA PARA IPAD 12.9 ( 2*  R$ 318,80 + R$ 0,00 )","quantidade":1.0,"valor_total":62.0,"valor_unitario":62.0,"frete":0.0,"detalhamento":"COMPRA DE BATERIA  PARA MANUTENÇÃO DO IPAD DE CLIENTE ( PAGAMENTO FRETE R$ 61,00 )","setor":"Logistica - Manutenção","fornecedor":"Mercado Livre","tipo":"compra","id":"março_20"},{"data":"2026-03-17","produto":"COMPRA DE 3 CASES SSD M2 ( *3  R$ 69,75 + R$ 0,00 )","quantidade":3.0,"valor_total":209.25,"valor_unitario":69.75,"frete":0.0,"detalhamento":"para reposição de estoque do setor Infraestutura","setor":"Infraestutura","fornecedor":"Mercado Livre","tipo":"compra","id":"março_21"},{"data":"2026-03-17","produto":"COMPRA DE 1 KIT C/4 FITAS DE POLIMENTOS (1* R$ 48,00 + R$ 0,00 )","quantidade":1.0,"valor_total":48.0,"valor_unitario":48.0,"frete":0.0,"detalhamento":"Compra de produto para teste no Setor Quotes","setor":"Quotes","fornecedor":"Não especificado","tipo":"compra","id":"março_22"},{"data":"2026-03-19","produto":"COMPRA DE 1 KIT C/10 UND Porta Folder  ( 1* R$ 118,64 + R$ 0,00 )","quantidade":1.0,"valor_total":118.64,"valor_unitario":118.64,"frete":0.0,"detalhamento":"para reposição de estoque do setor Visual  Merchadising","setor":"Visual Merchadising","fornecedor":"Mercado Livre","tipo":"compra","id":"março_23"},{"data":"2026-03-23","produto":"COMPRA DE 1 QUADRO 90X60CM ( 1* R$ 64,50 + R$ 10,99 )","quantidade":1.0,"valor_total":75.49,"valor_unitario":10.99,"frete":0.0,"detalhamento":"Compra de produto para uso no Setor ADM Estoque","setor":"ADM Estoque","fornecedor":"Mercado Livre","tipo":"compra","id":"março_24"},{"data":"2026-03-23","produto":"COMPRA DE 1 KIT C/ 5000 Enforca Gato (1* R$ 123,52 + R$ 0,00)","quantidade":1.0,"valor_total":123.52,"valor_unitario":123.52,"frete":0.0,"detalhamento":"Inserção de equipamento para uso no Setor RH","setor":"RH","fornecedor":"Mercado Livre","tipo":"compra","id":"março_25"},{"data":"2026-03-27","produto":"COMPRA DE 3MIL LACRES NUMERADOS ( 3* R$ 116,40 + R$ 0,00 )","quantidade":3.0,"valor_total":349.2,"valor_unitario":116.4,"frete":0.0,"detalhamento":"Inserção de equipamento para repor estoque do Setor Auditoria","setor":"Auditoria","fornecedor":"Mercado Livre","tipo":"compra","id":"março_26"}]},"abril":{"budget":4000.0,"transactions":[{"data":"2026-04-07","produto":"COMPRA DE 3 LUVAS NITRILICAS ( *3 R$ 38,90 + R$ 0,00 )","quantidade":3.0,"valor_total":116.7,"valor_unitario":38.9,"frete":0.0,"detalhamento":"Compra de produto para repor estoque do Setor Quotes","setor":"Quotes","fornecedor":"PH Quimica","tipo":"compra","id":"abril_0"},{"data":"2026-04-07","produto":"COMPRA DE 2 CAIXAS DE LAMINAS C/ 100 UND ( 2* R$ 19,10 + R$ 0,00 )","quantidade":2.0,"valor_total":38.2,"valor_unitario":19.1,"frete":0.0,"detalhamento":"Compra de produto para repor estoque do Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_1"},{"data":"2026-04-07","produto":"COMPRA DE 3 UND PAPEL FILME PVC ( 3* R$ 40,75 + R$ 0,00 )","quantidade":3.0,"valor_total":132.24,"valor_unitario":40.75,"frete":9.99,"detalhamento":"Compra de produto para repor estoque do Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_2"},{"data":"2026-04-07","produto":"COMPRA DE 1 BANCO TOLIX 76 CM ( 1* R$ 245,00 + R$ 31,00  )","quantidade":1.0,"valor_total":276.0,"valor_unitario":245.0,"frete":31.0,"detalhamento":"troca de equipamento danificado no PDV em 115 - Recife - Galaxy - Shopping Recife - Q P50","setor":"115 - Recife - Galaxy - Shopping Recife - Q P50","fornecedor":"Camicado","tipo":"compra","id":"abril_3"},{"data":"2026-04-07","produto":"COMPRA DE 3 KIT C/ 50 COTONOTE P LIMPEZA (3* R$ 99,90 + R$ 24,99 )","quantidade":3.0,"valor_total":141.63,"valor_unitario":47.21,"frete":0.0,"detalhamento":"Compra de produto para repor estoque do Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_4"},{"data":"2026-04-07","produto":"COMPRA DE 1 KIT C/ 50 LAMINAS (1* R$ 99,90 + R$ 24,99 )","quantidade":1.0,"valor_total":119.89,"valor_unitario":99.9,"frete":24.99,"detalhamento":"Compra de produto para uso no Estoque Geral","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_5"},{"data":"2026-04-09","produto":"COMPRA DE 1000 PEÇAS EXTRATOR DE CHIPS ( 1* R$ 104,00 + R$ 0,00 )","quantidade":1.0,"valor_total":104.0,"valor_unitario":104.0,"frete":0.0,"detalhamento":"Compra de produto para remoção de chips nas lojas e na sede","setor":"Estoque Geral","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_6"},{"data":"2026-04-09","produto":"COMPRA DE 1 SUPORTE DE BOLHA ( 1 * R$ 75,56 + R$ 0,00 )","quantidade":1.0,"valor_total":75.56,"valor_unitario":75.56,"frete":0.0,"detalhamento":"Compra de Item para uso no Setor Garantias para facilitar no uso do rolo Bolha","setor":"Garantias","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_7"},{"data":"2026-04-09","produto":"PAGAMENTO DE IMPRESSÃO DTF TEXTIL - SOLICITAÇÃO DE GUILHERME NERI","quantidade":1.0,"valor_total":40.0,"valor_unitario":40.0,"frete":0.0,"detalhamento":"Pagamento de impressão DTF TEXTIL - Solicitação de Guilherme Neri","setor":"Quotes","fornecedor":"Visual Bordados","tipo":"compra","id":"abril_8"},{"data":"2026-04-13","produto":"COMPRA DE 1 KIT C/ 20 UND MALOTES ESCRITORIO  ( 1* R$ 215,52 + R$ 0,00 )","quantidade":1.0,"valor_total":215.52,"valor_unitario":215.52,"frete":0.0,"detalhamento":"Compra de Malote para reposição do Setor RH -  FINANCEIRO","setor":"Financeiro","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_9"},{"data":"2026-04-13","produto":"COMPRA DE 1 BATERIA PARA IPAD 6 MINI ( 1* R$ 104,90 + R$ 0,00 )","quantidade":1.0,"valor_total":104.9,"valor_unitario":104.9,"frete":0.0,"detalhamento":"Compra de peça para serviço em aparelho de cliente no PDV em  Laboratorio Hardware Salvador - iPhone - Shopping Barra - Loja 437","setor":"Salvador - IPhone - Shopping Barra - Loja 437","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_10"},{"data":"2026-04-13","produto":"COMPRA DE 1 TAMPA TRASEIRA MOTO G6 ( 1* R$ 27,64 + R$ 0,00 )","quantidade":1.0,"valor_total":27.64,"valor_unitario":27.64,"frete":0.0,"detalhamento":"Compra de produto para atender demanda do Setor Laboratorio Hardware","setor":"Laboratorio Hardware","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_11"},{"data":"2026-04-13","produto":"COMPRA DE 1 KIT C/ 10 CONECTOR DE CARGA ( 1* R$ 60,53 + R$ 18,99 )","quantidade":1.0,"valor_total":79.52,"valor_unitario":60.53,"frete":18.99,"detalhamento":"Compra de produto repor Estoque do  Setor Laboratorio Hardware","setor":"Laboratorio Hardware","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_12"},{"data":"2026-04-13","produto":"COMPRA DE 1 BANCO TOLIX 76 CM ( 1* R$ 138,90 + R$ 79,35  )","quantidade":1.0,"valor_total":218.25,"valor_unitario":138.9,"frete":79.35,"detalhamento":"troca de equipamento danificado no PDV em 115 - Recife - Galaxy - Shopping Recife - Q P50","setor":"115 - Recife - Galaxy - Shopping Recife - Q P50","fornecedor":"Amazon","tipo":"compra","id":"abril_13"},{"data":"2026-04-14","produto":"COMPRA DE 3 PASTA SANFONADA  ( 3* R$ 30,90 + R$ 0,00 )","quantidade":3.0,"valor_total":92.7,"valor_unitario":30.9,"frete":0.0,"detalhamento":"Compra de pasta Sanfonada para guardar documentos no PDV 234 - Salvador - iPhone - Shopping Barra - Loja 437","setor":"Salvador - IPhone - Shopping Barra - Loja 437","fornecedor":"Papel E CIA","tipo":"compra","id":"abril_14"},{"data":"2026-04-14","produto":"COMPRA DE 1 FONE DE OUVIDO COM HEADSET ( 1* R$ 48,40 + R$ 0,00 )","quantidade":1.0,"valor_total":48.4,"valor_unitario":48.4,"frete":0.0,"detalhamento":"Troca de equipamento danificado da Colabodora Mabel no setor Call center","setor":"Call Center","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_15"},{"data":"2026-04-16","produto":"COMPRA DE 1 MANTA TEFLON COM ADESIVO 40X40CM ( 1* R$ 49,00 + R$  25,99 )","quantidade":1.0,"valor_total":69.83,"valor_unitario":49.0,"frete":25.99,"detalhamento":"Compra de produto para uso na Impressora Termica no Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_16"},{"data":"2026-04-16","produto":"COMPRA DE 1 MANTA TEFLON SEM ADESIVO 40X40CM ( 1* R$ 47,00 + R$ 25,99 )","quantidade":1.0,"valor_total":66.95,"valor_unitario":47.0,"frete":25.99,"detalhamento":"Compra de produto para uso na Impressora Termica no Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_17"},{"data":"2026-04-16","produto":"COMPRA DE 1 TERMOMETRO LASER DIGITAL ( 1* R$ 48,90 + R$ 9,99 )","quantidade":1.0,"valor_total":58.89,"valor_unitario":48.9,"frete":9.99,"detalhamento":"Compra de produto para uso na Impressora Termica no Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_18"},{"data":"2026-04-16","produto":"PAGAMENTO DE IMPRESSÃO DTF TEXTIL - SOLICITAÇÃO DE GUILHERME NERI","quantidade":1.0,"valor_total":40.0,"valor_unitario":40.0,"frete":0.0,"detalhamento":"Pagamento de impressão DTF TEXTIL - Solicitação de Guilherme Neri","setor":"Quotes","fornecedor":"Visual Bordados","tipo":"compra","id":"abril_19"},{"data":"2026-04-23","produto":"COMPRA DE 3 BOBINA PICOTADA ( 3* R$ 41,90 + R$ 29,99 )","quantidade":3.0,"valor_total":155.69,"valor_unitario":41.9,"frete":29.99,"detalhamento":"para uso no Estoque Geral","setor":"Estoque Geral","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_20"},{"data":"2026-04-23","produto":"COMPRA DE 2 KITS C/ 10 UND  PLAQUINHA  PIX SUPORTE EM ACRILICO ( 2* R$ 49,90 + R$ 0,00 )","quantidade":2.0,"valor_total":71.98,"valor_unitario":35.99,"frete":0.0,"detalhamento":"Reposição de Estoque do Setor Visual Merchadising","setor":"Visual Merchadising","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_21"},{"data":"2026-04-23","produto":"COMPRA DE 2 KITS C/ 10 UND  CARTÃO DE VISITA  SUPORTE EM ACRILICO ( 2* R$ 89,00 + R$ 0,00 )","quantidade":2.0,"valor_total":178.0,"valor_unitario":89.0,"frete":0.0,"detalhamento":"Reposição de Estoque do Setor Visual Merchadising","setor":"Visual Merchadising","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_22"},{"data":"2026-04-23","produto":"COMPRA DE 2 KITS C/ 10 UND  EXPOSITOR PORTA FOLHA A4  SUPORTE EM ACRILICO ( 2* R$ 57,43 + R$ 0,00 )","quantidade":2.0,"valor_total":114.86,"valor_unitario":57.43,"frete":0.0,"detalhamento":"Reposição de Estoque do Setor Visual Merchadising","setor":"Visual Merchadising","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_23"},{"data":"2026-04-23","produto":"COMPRA DE 1 PACOTE C/ 50 FOLHAS A4 ( 1* R$ 41,00 + R$ 0,00 )","quantidade":1.0,"valor_total":41.0,"valor_unitario":41.0,"frete":0.0,"detalhamento":"Compra de Produto para uso no Setor Coworking","setor":"Coworking","fornecedor":"IOX Papeis","tipo":"compra","id":"abril_24"},{"data":"2026-04-24","produto":"COMPRA DE 1 KIT TECLADO E MOUSE SEM FIO DELL KM3322W (1* R$ 149,00 + R$ 0,00 )","quantidade":1.0,"valor_total":149.0,"valor_unitario":149.0,"frete":0.0,"detalhamento":"Compra de produto para nova padronização no PDV  Belém - Iphone - Boulevard Shopping Belém - Q 103","setor":"Belém - Iphone - Boulevard Shopping Belém - Q 103","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_25"},{"data":"2026-04-24","produto":"COMPRA DE 1 FONTE CHAVEADA 30a ( 1* R$ 46,78 + R$ 4,99 )","quantidade":1.0,"valor_total":51.77,"valor_unitario":46.78,"frete":4.99,"detalhamento":"Troca de equipamento danificado no PDV Em Natal - iPhone - Natal Shopping - Loja 378","setor":"Natal - IPhone - Natal Shopping - Loja 378","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_26"},{"data":"2026-04-24","produto":"COMPRA DE 1 ENVELOPE DE SEGURANÇA 80X60 CM C/ 100 UND  ( 1* R$ 99,99 + R$ 20,99 )","quantidade":1.0,"valor_total":120.98,"valor_unitario":99.99,"frete":20.99,"detalhamento":"Compra de produto para repor estoque do Setor Logistica","setor":"Logistica","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_27"},{"data":"2026-04-24","produto":"COMPRA DE 1 BANCO TOLIX 76 CM ( 1* R$ 138,90 + R$ 72,46  )","quantidade":1.0,"valor_total":211.36,"valor_unitario":138.9,"frete":72.46,"detalhamento":"Troca de equipamento danificado no PDV em 413 - Goiânia - VX Case Fashion - Compras Flamboyant - Q S10","setor":"413 - Goiânia - VX Case Fashion - Compras Flamboyant - Q S10","fornecedor":"Amazon","tipo":"compra","id":"abril_28"},{"data":"2026-04-27","produto":"PAGAMENTO DE IMPRESSÃO DTF TEXTIL - SOLICITAÇÃO DE GUILHERME NERI","quantidade":1.0,"valor_total":40.0,"valor_unitario":40.0,"frete":0.0,"detalhamento":"Pagamento de impressão DTF TEXTIL - Solicitação de Guilherme Neri","setor":"Quotes","fornecedor":"Visual Bordados","tipo":"compra","id":"abril_29"},{"data":"2026-04-27","produto":"COMPRA DE 2  KIT C/ 1 MIL ETIQUETAS 10X15 ( 2* R$ 48,53 + R$ 0,00 )","quantidade":2.0,"valor_total":97.06,"valor_unitario":48.53,"frete":0.0,"detalhamento":"para Repor Estoque do Setor Logistica","setor":"Logistica","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_30"},{"data":"2026-04-27","produto":"COMPRA DE 2  KIT C/ 1 MIL ETIQUETAS 10X15 ( 2* R$ 48,53 + R$ 17,99)","quantidade":2.0,"valor_total":115.05,"valor_unitario":48.53,"frete":17.99,"detalhamento":"para Repor Estoque do Setor Logistica","setor":"Logistica","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_31"},{"data":"2026-04-27","produto":"COMPRA 3 KITS C/ 100 UND CARTÃO CRACHÁ ( 3* R$ 62,98 + R$ 0,00 )","quantidade":3.0,"valor_total":188.94,"valor_unitario":62.98,"frete":0.0,"detalhamento":"Compra de produto para repor estoque do Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_32"},{"data":"2026-04-28","produto":"COMPRA DE 1 BANCO TOLIX 76 CM ( 1* R$ 245,00 + R$ 31,00  )  REEMBOLSO","quantidade":1.0,"valor_total":276.0,"valor_unitario":245.0,"frete":31.0,"detalhamento":"troca de equipamento danificado no PDV em 115 - Recife - Galaxy - Shopping Recife - Q P50 ( REEMBOLSO  )","setor":"115 - Recife - Galaxy - Shopping Recife - Q P50","fornecedor":"Camicado","tipo":"reembolso","id":"abril_33"},{"data":"2026-04-28","produto":"COMPRA DE 4 KIT C/ 2 FITAS CREPE 3M ( 4* R$ 33,03 + R$ 0,00 )","quantidade":4.0,"valor_total":132.12,"valor_unitario":33.03,"frete":0.0,"detalhamento":"Compra de produto para repor estoque do Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_34"},{"data":"2026-04-28","produto":"COMPRA DE 4 KIT C/ 2 FITAS CREPE 3M ( 4* R$ 33,03 + R$ 0,00 )  ( REEMBOLSO  )","quantidade":4.0,"valor_total":132.12,"valor_unitario":33.03,"frete":0.0,"detalhamento":"Compra de produto para repor estoque do Setor Quotes ( REEMBOLSO  )","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"reembolso","id":"abril_35"},{"data":"2026-04-29","produto":"COMPRA DE 1 UND ESQUADRO COMBINADO ( 1* R$ 27,48 + R$ 0,00 )","quantidade":1.0,"valor_total":27.48,"valor_unitario":27.48,"frete":0.0,"detalhamento":"Compra de produto para uso no Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_36"},{"data":"2026-04-29","produto":"PAGAMENTO DE IMPRESSÃO DTF TEXTIL - SOLICITAÇÃO DE GUILHERME NERI","quantidade":1.0,"valor_total":40.0,"valor_unitario":40.0,"frete":0.0,"detalhamento":"Pagamento de impressão DTF TEXTIL - Solicitação de Guilherme Neri","setor":"Quotes","fornecedor":"Visual Bordados","tipo":"compra","id":"abril_37"},{"data":"2026-04-29","produto":"COMPRA DE 4 KIT C/ 2 FITAS CREPE 3M ( 4* R$ 33,03 + R$ 0,00 )","quantidade":4.0,"valor_total":132.12,"valor_unitario":33.03,"frete":0.0,"detalhamento":"Compra de produto para repor estoque do Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_38"},{"data":"2026-04-30","produto":"COMPRA DE 1 UND REMOVEDOR DE FILME DTF (1* R$ 102,17 + R$ 0,00 )","quantidade":1.0,"valor_total":102.17,"valor_unitario":102.17,"frete":0.0,"detalhamento":"Compra de produto para repor estoque do Setor Quotes","setor":"Quotes","fornecedor":"Mercado Livre","tipo":"compra","id":"abril_39"}]}};
+
+// =================================================
+// STATE
+// =================================================
+const STORAGE_KEY = 'fundo-caixa-v2';
+
+const state = {
+  filters: { month: 'janeiro', sector: 'all', supplier: 'all', type: 'todos' },
+  activeTab: 'overview',
+  searchTerm: '',
+  edits: {},
+  get recharges() { return firestoreRecharges; },
+  set recharges(v) { firestoreRecharges = v; },
+};
+
+
+
+// Firestore: salvar edição na própria transação (não como override)
+async function persistTransactionEdit(txId, edit) {
+  if (!currentUser) {
+    showToast('Faça login pra editar');
+    return false;
+  }
+  try {
+    // Encontra a transação atual
+    const tx = getAllTransactions().find(t => t.id === txId);
+    if (!tx) return false;
+    // Aplica edit
+    const updated = { ...tx, ...edit };
+    delete updated.id;
+    await setDoc(doc(db, 'transactions', txId), updated);
+    return true;
+  } catch (e) {
+    console.error('Erro ao salvar transação:', e);
+    showToast('Erro ao salvar: ' + e.message);
+    return false;
+  }
+}
+
+async function persistRecharge(recharge) {
+  if (!currentUser) { showToast('Faça login pra editar'); return false; }
+  try {
+    const { id, ...data } = recharge;
+    await setDoc(doc(db, 'recharges', id), data);
+    return true;
+  } catch (e) {
+    console.error('Erro ao salvar recarga:', e);
+    showToast('Erro: ' + e.message);
+    return false;
+  }
+}
+
+async function deleteRecharge(rechargeId) {
+  if (!currentUser) { showToast('Faça login pra excluir'); return false; }
+  try {
+    await deleteDoc(doc(db, 'recharges', rechargeId));
+    return true;
+  } catch (e) {
+    console.error('Erro ao excluir:', e);
+    showToast('Erro: ' + e.message);
+    return false;
+  }
+}
+
+// Listeners em tempo real
+function startFirestoreListeners() {
+  // Transactions
+  onSnapshot(collection(db, 'transactions'), (snapshot) => {
+    const grouped = { janeiro: [], fevereiro: [], "março": [], abril: [] };
+    snapshot.forEach(docSnap => {
+      const data = docSnap.data();
+      const tx = { id: docSnap.id, ...data };
+      const mes = tx.mes || 'janeiro';
+      if (grouped[mes]) grouped[mes].push(tx);
+    });
+    // Ordenar por data dentro de cada mês
+    Object.keys(grouped).forEach(m => {
+      grouped[m].sort((a, b) => (a.data || '').localeCompare(b.data || ''));
+      RAW_DATA[m] = { budget: 0, transactions: grouped[m] };
+    });
+    dataLoaded = true;
+    render();
+  }, (err) => {
+    console.error('Erro Firestore (transactions):', err);
+    showToast('Erro lendo transações: ' + err.message);
+  });
+
+  // Recharges
+  onSnapshot(collection(db, 'recharges'), (snapshot) => {
+    firestoreRecharges = [];
+    snapshot.forEach(docSnap => {
+      firestoreRecharges.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    firestoreRecharges.sort((a, b) => (a.date || '').localeCompare(b.date || ''));
+    render();
+  }, (err) => {
+    console.error('Erro Firestore (recharges):', err);
+  });
+}
+
+const MONTH_ORDER = ['janeiro', 'fevereiro', 'março', 'abril'];
+const MONTH_LABELS = {
+  todos: 'Todos os meses',
+  janeiro: 'Janeiro',
+  fevereiro: 'Fevereiro',
+  'março': 'Março',
+  abril: 'Abril',
+};
+
+const BRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2 });
+const BRL_COMPACT = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', notation: 'compact', maximumFractionDigits: 1 });
+const fmtBRL = v => BRL.format(v || 0);
+const fmtBRLc = v => BRL_COMPACT.format(v || 0);
+const fmtDate = iso => {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}`;
+};
+const fmtDateLong = iso => {
+  if (!iso) return '—';
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+};
+
+// Classifica reembolso:
+// - "AO FUNCIONARIO/COLABORADOR" => saída (empresa paga funcionário)
+// - resto => entrada (fornecedor devolve dinheiro)
+function classifyRefund(produto) {
+  const p = (produto || '').toUpperCase();
+  if (p.includes('AO FUNCIONARIO') || p.includes('AO COLABORADOR')) return 'out';
+  return 'in';
+}
+
+// Determina se uma transação é entrada ou saída no caixa
+function txIsInflow(t) {
+  return t.tipo === 'reembolso' && classifyRefund(t.produto) === 'in';
+}
+function txIsOutflow(t) {
+  if (t.tipo === 'compra') return true;
+  if (t.tipo === 'reembolso' && classifyRefund(t.produto) === 'out') return true;
+  return false;
+}
+
+const escHtml = s => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+function statusOf(pct) {
+  if (pct <= 70) return { key: 'success', label: 'Sob controle' };
+  if (pct <= 90) return { key: 'warning', label: 'Atenção' };
+  if (pct <= 100) return { key: 'danger', label: 'Crítico' };
+  return { key: 'critical', label: 'Estourado' };
+}
+
+function showToast(msg) {
+  const root = document.getElementById('toast-root');
+  root.innerHTML = `<div class="toast">${escHtml(msg)}</div>`;
+  setTimeout(() => { root.innerHTML = ''; }, 2400);
+}
+
+// =================================================
+// DATA QUERIES (aplicam edits)
+// =================================================
+function getTransaction(t) {
+  // Antes era usado pra aplicar edits locais — agora dados vêm já editados do Firestore
+  return t;
+}
+
+function getAllTransactions() {
+  const result = [];
+  MONTH_ORDER.forEach(m => {
+    (RAW_DATA[m]?.transactions || []).forEach(t => {
+      result.push(getTransaction(t));
+    });
+  });
+  return result;
+}
+
+function getFiltered() {
+  const f = state.filters;
+  let txs = getAllTransactions();
+  if (f.month !== 'todos') txs = txs.filter(t => t.id.startsWith(f.month + '_'));
+  if (f.sector !== 'all') txs = txs.filter(t => t.setor === f.sector);
+  if (f.supplier !== 'all') txs = txs.filter(t => t.fornecedor === f.supplier);
+  if (f.type !== 'todos') txs = txs.filter(t => t.tipo === f.type);
+  return txs;
+}
+
+function getMonthBudget(month) {
+  // Soma das recargas do mês — fonte da verdade
+  return state.recharges
+    .filter(r => r.month === month)
+    .reduce((s, r) => s + Number(r.amount), 0);
+}
+
+// Calcula saldo cumulativo até o fim de um determinado mês
+// (incluindo todas recargas e transações até esse mês inclusive)
+function computeCashflow(uptoMonth) {
+  // uptoMonth = 'janeiro' | ... | 'abril' | null (significa final geral)
+  const monthLimit = uptoMonth ? MONTH_ORDER.indexOf(uptoMonth) : MONTH_ORDER.length - 1;
+  let recharges = 0, refundsIn = 0, outflows = 0, purchases = 0, refundsOut = 0;
+  let purchaseCount = 0;
+
+  for (let i = 0; i <= monthLimit; i++) {
+    const m = MONTH_ORDER[i];
+    recharges += getMonthBudget(m);
+    (RAW_DATA[m]?.transactions || []).map(getTransaction).forEach(t => {
+      if (t.tipo === 'compra') {
+        purchases += t.valor_total;
+        outflows += t.valor_total;
+        purchaseCount += 1;
+      } else if (t.tipo === 'reembolso') {
+        if (classifyRefund(t.produto) === 'in') {
+          refundsIn += t.valor_total;
+        } else {
+          refundsOut += t.valor_total;
+          outflows += t.valor_total;
+        }
+      }
+    });
+  }
+  const inflows = recharges + refundsIn;
+  const balance = inflows - outflows;
+  return { recharges, refundsIn, refundsOut, purchases, outflows, inflows, balance, purchaseCount };
+}
+
+// Métricas pra o período do filtro (mês ou todos)
+function getMetrics() {
+  const f = state.filters;
+  const txs = getFiltered();
+  const compras = txs.filter(t => t.tipo === 'compra');
+  const refundsIn = txs.filter(txIsInflow);
+  const refundsOut = txs.filter(t => t.tipo === 'reembolso' && classifyRefund(t.produto) === 'out');
+
+  const purchases = compras.reduce((s, t) => s + t.valor_total, 0);
+  const spent = txs.filter(txIsOutflow).reduce((s, t) => s + t.valor_total, 0);
+  const refundsInTotal = refundsIn.reduce((s, t) => s + t.valor_total, 0);
+
+  // Recargas do período
+  let recharges;
+  if (f.month === 'todos') {
+    recharges = MONTH_ORDER.reduce((s, m) => s + getMonthBudget(m), 0);
+  } else {
+    recharges = getMonthBudget(f.month);
+  }
+
+  // Saldo cumulativo até o fim do período (sempre — é a essência do fundo de caixa)
+  const cashflowEnd = f.month === 'todos'
+    ? computeCashflow(MONTH_ORDER[MONTH_ORDER.length - 1])
+    : computeCashflow(f.month);
+
+  // Saldo inicial do período (saldo no fim do mês anterior, ou 0 se for janeiro/todos)
+  let startingBalance = 0;
+  if (f.month !== 'todos') {
+    const idx = MONTH_ORDER.indexOf(f.month);
+    if (idx > 0) {
+      startingBalance = computeCashflow(MONTH_ORDER[idx - 1]).balance;
+    }
+  }
+
+  const inflows = recharges + refundsInTotal;
+  const balance = cashflowEnd.balance;
+
+  // % consumo: quanto das entradas (saldo inicial + recargas + reemb in) foi gasto
+  const totalAvailable = startingBalance + inflows;
+  const consumptionPct = totalAvailable > 0 ? (spent / totalAvailable) * 100 : 0;
+
+  return {
+    // Compatibilidade
+    budget: recharges,
+    spent,
+    balance,
+    consumptionPct,
+    purchaseCount: compras.length,
+    avgTicket: compras.length > 0 ? purchases / compras.length : 0,
+    refundsCount: txs.filter(t => t.tipo === 'reembolso').length,
+    refundsTotal: txs.filter(t => t.tipo === 'reembolso').reduce((s, t) => s + t.valor_total, 0),
+    // Cumulativo
+    startingBalance,
+    recharges,
+    refundsInTotal,
+    refundsOutTotal: refundsOut.reduce((s, t) => s + t.valor_total, 0),
+    purchases,
+    inflows,
+    totalAvailable,
+  };
+}
+
+function groupBy(txs, key) {
+  const map = new Map();
+  txs.filter(t => t.tipo === 'compra').forEach(t => {
+    const k = t[key] || '—';
+    if (!map.has(k)) map.set(k, { name: k, total: 0, count: 0 });
+    const e = map.get(k);
+    e.total += t.valor_total;
+    e.count += 1;
+  });
+  const list = Array.from(map.values()).sort((a, b) => b.total - a.total);
+  const sum = list.reduce((s, x) => s + x.total, 0);
+  list.forEach(x => x.percentage = sum > 0 ? (x.total / sum) * 100 : 0);
+  return list;
+}
+
+function getMonthlyComparison() {
+  return MONTH_ORDER.map(m => {
+    const txs = (RAW_DATA[m]?.transactions || []).map(getTransaction);
+    const spent = txs.filter(txIsOutflow).reduce((s, t) => s + t.valor_total, 0);
+    const budget = getMonthBudget(m);
+    const cf = computeCashflow(m);
+    return {
+      key: m, label: MONTH_LABELS[m],
+      spent: Math.round(spent * 100) / 100,
+      budget,
+      balance: cf.balance,
+      percentage: budget > 0 ? (spent / budget) * 100 : 0,
+    };
+  });
+}
+
+function getGrowth() {
+  if (state.filters.month === 'todos') return 0;
+  const idx = MONTH_ORDER.indexOf(state.filters.month);
+  if (idx <= 0) return 0;
+  const cur = (RAW_DATA[state.filters.month].transactions || []).map(getTransaction)
+    .filter(t => t.tipo === 'compra').reduce((s, t) => s + t.valor_total, 0);
+  const prev = (RAW_DATA[MONTH_ORDER[idx - 1]].transactions || []).map(getTransaction)
+    .filter(t => t.tipo === 'compra').reduce((s, t) => s + t.valor_total, 0);
+  if (prev === 0) return 0;
+  return ((cur - prev) / prev) * 100;
+}
+
+function getUniqueSectors() {
+  const set = new Set();
+  getAllTransactions().forEach(t => set.add(t.setor));
+  return Array.from(set).sort();
+}
+
+function getUniqueSuppliers() {
+  const set = new Set();
+  getAllTransactions().forEach(t => set.add(t.fornecedor));
+  return Array.from(set).sort();
+}
+
+// =================================================
+// EDIT TRANSACTION (modal)
+// =================================================
+function openEditModal(txId) {
+  const tx = getAllTransactions().find(t => t.id === txId);
+  if (!tx) return;
+
+  const sectorOptions = getUniqueSectors().map(s =>
+    `<option value="${escHtml(s)}" ${s === tx.setor ? 'selected' : ''}>${escHtml(s)}</option>`
+  ).join('');
+
+  const supplierOptions = getUniqueSuppliers().map(s =>
+    `<option value="${escHtml(s)}" ${s === tx.fornecedor ? 'selected' : ''}>${escHtml(s)}</option>`
+  ).join('');
+
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <div class="modal-title">Editar transação</div>
+        <div class="modal-desc tabular">${fmtDateLong(tx.data)} · ${fmtBRL(tx.valor_total)}</div>
+
+        <div style="background: var(--surface-2); padding: 12px 14px; border-radius: 6px; margin-bottom: 16px; font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+          ${escHtml(tx.produto)}
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Setor / Centro de custo</label>
+          <select class="form-select" id="edit-sector">
+            ${sectorOptions}
+            <option value="__new__">+ Novo setor...</option>
+          </select>
+        </div>
+
+        <div class="form-row hidden" id="new-sector-row">
+          <label class="form-label">Nome do novo setor</label>
+          <input type="text" class="form-input" id="edit-sector-new" placeholder="Digite o nome..." />
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Fornecedor</label>
+          <select class="form-select" id="edit-supplier">
+            ${supplierOptions}
+            <option value="__new__">+ Novo fornecedor...</option>
+          </select>
+        </div>
+
+        <div class="form-row hidden" id="new-supplier-row">
+          <label class="form-label">Nome do novo fornecedor</label>
+          <input type="text" class="form-input" id="edit-supplier-new" placeholder="Digite o nome..." />
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn" id="modal-cancel">Cancelar</button>
+          ''
+          <button class="btn btn-primary" id="modal-save">Salvar</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const sectorSel = document.getElementById('edit-sector');
+  const newSectorRow = document.getElementById('new-sector-row');
+  const newSectorInput = document.getElementById('edit-sector-new');
+  sectorSel.addEventListener('change', () => {
+    if (sectorSel.value === '__new__') {
+      newSectorRow.classList.remove('hidden');
+      newSectorInput.focus();
+    } else {
+      newSectorRow.classList.add('hidden');
+    }
+  });
+
+  const supSel = document.getElementById('edit-supplier');
+  const newSupRow = document.getElementById('new-supplier-row');
+  const newSupInput = document.getElementById('edit-supplier-new');
+  supSel.addEventListener('change', () => {
+    if (supSel.value === '__new__') {
+      newSupRow.classList.remove('hidden');
+      newSupInput.focus();
+    } else {
+      newSupRow.classList.add('hidden');
+    }
+  });
+
+  document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-overlay') closeModal();
+  });
+  document.getElementById('modal-cancel').addEventListener('click', closeModal);
+
+  const resetBtn = document.getElementById('modal-reset');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', async () => {
+      // Resetar = restaurar valores originais do bootstrap
+      const tx = getAllTransactions().find(t => t.id === txId);
+      const orig = (BOOTSTRAP_DATA[tx.mes]?.transactions || []).find((_, i) => true && tx.id === tx.id);
+      // Buscar a transação original pelo ID (deve estar no bootstrap)
+      let origTx = null;
+      for (const m of MONTH_ORDER) {
+        origTx = (BOOTSTRAP_DATA[m]?.transactions || []).find(t => t.id === txId);
+        if (origTx) break;
+      }
+      if (origTx) {
+        const restored = { ...origTx };
+        delete restored.id;
+        await setDoc(doc(db, 'transactions', txId), restored);
+      }
+      closeModal();
+      showToast('Edição revertida');
+    });
+  }
+
+  document.getElementById('modal-save').addEventListener('click', async () => {
+    let setor = sectorSel.value;
+    if (setor === '__new__') {
+      setor = newSectorInput.value.trim();
+      if (!setor) { newSectorInput.focus(); return; }
+    }
+    let fornecedor = supSel.value;
+    if (fornecedor === '__new__') {
+      fornecedor = newSupInput.value.trim();
+      if (!fornecedor) { newSupInput.focus(); return; }
+    }
+
+    const orig = (RAW_DATA[txId.split('_')[0]].transactions || [])
+      .find((_, i) => `${txId.split('_')[0]}_${i}` === txId);
+
+    if (!orig) return;
+
+    const edit = {};
+    if (setor !== orig.setor) edit.setor = setor;
+    if (fornecedor !== orig.fornecedor) edit.fornecedor = fornecedor;
+
+    if (Object.keys(edit).length === 0) {
+      closeModal();
+      return;
+    }
+
+    // Salvar no Firestore (sobrescreve o doc da transação)
+    const ok = await persistTransactionEdit(txId, edit);
+    if (ok) {
+      closeModal();
+      showToast('Alterações salvas');
+    }
+  });
+}
+
+function closeModal() {
+  document.getElementById('modal-root').innerHTML = '';
+}
+
+// =================================================
+// RECHARGES
+// =================================================
+function openRechargeModal(rechargeId) {
+  const isEdit = !!rechargeId;
+  const rec = isEdit ? state.recharges.find(r => r.id === rechargeId) : null;
+
+  const monthOpts = MONTH_ORDER.map(m =>
+    `<option value="${m}" ${rec && rec.month === m ? 'selected' : ''}>${MONTH_LABELS[m]}</option>`
+  ).join('');
+
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal">
+        <div class="modal-title">${isEdit ? 'Editar recarga' : 'Nova recarga'}</div>
+        <div class="modal-desc">Valor enviado pelo financeiro pra repor o fundo de caixa</div>
+
+        <div class="form-row">
+          <label class="form-label">Data</label>
+          <input type="date" class="form-input" id="rec-date" value="${rec ? rec.date : ''}" />
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Mês de referência</label>
+          <select class="form-select" id="rec-month">${monthOpts}</select>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Valor (R$)</label>
+          <input type="number" step="0.01" class="form-input" id="rec-amount" value="${rec ? rec.amount : '2500'}" />
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Enviado por</label>
+          <input type="text" class="form-input" id="rec-sender" value="${rec ? escHtml(rec.sender) : 'Financeiro'}" />
+        </div>
+
+        <div class="modal-footer">
+          ${isEdit ? `<button class="btn btn-danger btn-sm" id="rec-delete">Excluir</button>` : ''}
+          <div style="flex: 1"></div>
+          <button class="btn" id="rec-cancel">Cancelar</button>
+          <button class="btn btn-primary" id="rec-save">${isEdit ? 'Salvar' : 'Adicionar'}</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-overlay') closeModal();
+  });
+  document.getElementById('rec-cancel').addEventListener('click', closeModal);
+
+  const delBtn = document.getElementById('rec-delete');
+  if (delBtn) {
+    delBtn.addEventListener('click', async () => {
+      if (!confirm('Excluir essa recarga?')) return;
+      const ok = await deleteRecharge(rechargeId);
+      if (ok) { closeModal(); showToast('Recarga removida'); }
+    });
+  }
+
+  document.getElementById('rec-save').addEventListener('click', async () => {
+    const date = document.getElementById('rec-date').value;
+    const month = document.getElementById('rec-month').value;
+    const amount = parseFloat(document.getElementById('rec-amount').value);
+    const sender = document.getElementById('rec-sender').value.trim() || 'Financeiro';
+
+    if (!date) { showToast('Informe a data'); return; }
+    if (!amount || amount <= 0) { showToast('Informe um valor válido'); return; }
+
+    const id = isEdit ? rechargeId : ('r-' + date + '-' + Date.now());
+    const recharge = { id, date, month, amount, sender };
+    const ok = await persistRecharge(recharge);
+    if (ok) {
+      closeModal();
+      showToast(isEdit ? 'Recarga atualizada' : 'Recarga adicionada');
+    }
+  });
+}
+
+// =================================================
+// COMPONENTS
+// =================================================
+// Detecta se uma transação tem alguma pendência (setor ou fornecedor não especificado)
+function isUnspecified(value) {
+  return value === 'Não especificado' || value === 'Não Especificado' || !value;
+}
+function txHasPending(t) {
+  return isUnspecified(t.setor) || isUnspecified(t.fornecedor);
+}
+function getAllPending() {
+  return getAllTransactions()
+    .filter(txHasPending)
+    .sort((a, b) => b.data.localeCompare(a.data));
+}
+
+function renderHero() {
+  const m = getMetrics();
+  const f = state.filters;
+  const isAllMonths = f.month === 'todos';
+  const isNegative = m.balance < 0;
+
+  // Status do saldo (semáforo simples baseado em quanto sobra)
+  let statusKey, statusLabel;
+  if (isNegative) {
+    statusKey = 'danger'; statusLabel = 'Saldo negativo';
+  } else if (m.balance < 500) {
+    statusKey = 'warning'; statusLabel = 'Saldo baixo';
+  } else {
+    statusKey = 'success'; statusLabel = 'Saldo OK';
+  }
+
+  // Linhas do "extrato"
+  const rows = [];
+  if (m.startingBalance !== 0 && !isAllMonths) {
+    rows.push({ label: 'Saldo inicial', value: m.startingBalance, type: 'neutral', icon: 'wallet' });
+  }
+  rows.push({ label: 'Recargas recebidas', value: m.recharges, type: 'in', icon: 'arrow-down' });
+  if (m.refundsInTotal > 0) {
+    rows.push({ label: 'Reembolsos de fornecedor', value: m.refundsInTotal, type: 'in', icon: 'arrow-down' });
+  }
+  rows.push({ label: 'Compras', value: -m.purchases, type: 'out', icon: 'arrow-up' });
+  if (m.refundsOutTotal > 0) {
+    rows.push({ label: 'Pagamento a colaboradores', value: -m.refundsOutTotal, type: 'out', icon: 'arrow-up' });
+  }
+
+  const periodLabel = isAllMonths ? 'Todo o período' : MONTH_LABELS[f.month];
+
+  return `
+    <div class="card hero" style="padding: 0; overflow: hidden;">
+      <div style="padding: 18px 22px 14px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <div class="hero-label">Saldo do fundo · ${escHtml(periodLabel)}</div>
+          <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 2px;">
+            <span class="hero-value tabular ${isNegative ? 'danger' : ''}">${fmtBRL(m.balance)}</span>
+            <span class="badge badge-${statusKey}">${statusLabel}</span>
+          </div>
+        </div>
+        <button class="btn btn-sm" id="hero-toggle" data-expanded="false" style="margin-bottom: 4px;">
+          <span class="hero-toggle-text">Ver detalhes</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" id="hero-chevron"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+      </div>
+      <div class="hero-detail hidden" id="hero-detail">
+        <div style="border-top: 1px solid var(--border); padding: 14px 22px; background: var(--surface-2);">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            ${rows.map(r => `
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 13px;">
+                <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                  ${r.type === 'in' ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--success-fg)" stroke-width="2.5"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg>` : ''}
+                  ${r.type === 'out' ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--danger-fg)" stroke-width="2.5"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>` : ''}
+                  ${r.type === 'neutral' ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>` : ''}
+                  <span>${escHtml(r.label)}</span>
+                </div>
+                <span class="tabular" style="font-weight: 500; ${r.type === 'in' ? 'color: var(--success-fg);' : r.type === 'out' ? 'color: var(--danger-fg);' : ''}">
+                  ${r.value >= 0 ? '+' : ''}${fmtBRL(r.value)}
+                </span>
+              </div>
+            `).join('')}
+            <div style="border-top: 1px dashed var(--border); padding-top: 10px; margin-top: 4px; display: flex; justify-content: space-between; font-size: 13px; font-weight: 600;">
+              <span>Saldo final</span>
+              <span class="tabular ${isNegative ? '' : ''}" style="${isNegative ? 'color: var(--danger-fg);' : ''}">${fmtBRL(m.balance)}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function metric(label, value, hint, trendVal, trendInverse) {
+  let trendHtml = '';
+  if (typeof trendVal === 'number' && trendVal !== 0) {
+    const isUp = trendVal > 0;
+    const isGood = trendInverse ? !isUp : isUp;
+    const cls = isGood ? 'trend-down' : 'trend-up';
+    const arrow = isUp ? '▲' : '▼';
+    trendHtml = `<span class="${cls}">${arrow} ${Math.abs(trendVal).toFixed(1)}%</span>`;
+  }
+  return `
+    <div class="metric">
+      <div class="metric-label">${escHtml(label)}</div>
+      <div class="metric-value tabular">${value}</div>
+      ${(hint || trendHtml) ? `<div class="metric-hint">${trendHtml}${hint ? `<span>${escHtml(hint)}</span>` : ''}</div>` : ''}
+    </div>
+  `;
+}
+
+function renderMetrics() {
+  const m = getMetrics();
+  const growth = getGrowth();
+  const supplierCount = new Set(getFiltered().filter(t => t.tipo === 'compra').map(t => t.fornecedor)).size;
+  const sectorCount = new Set(getFiltered().filter(t => t.tipo === 'compra').map(t => t.setor)).size;
+  return `
+    <div class="metrics-grid">
+      ${metric('Total gasto', fmtBRL(m.spent), 'vs mês anterior', growth, true)}
+      ${metric('Compras', m.purchaseCount, supplierCount + ' fornecedores')}
+      ${metric('Ticket médio', fmtBRL(m.avgTicket))}
+      ${metric('Setores ativos', sectorCount, m.refundsCount > 0 ? `${m.refundsCount} reembolso(s)` : null)}
+    </div>
+  `;
+}
+
+function barRow(name, value, max, secondary, opacity, isOthers, dataAttr) {
+  const w = max > 0 ? (value / max) * 100 : 0;
+  return `
+    <button class="bar-row clickable" ${dataAttr || ''}>
+      <span class="bar-name ${isOthers ? 'others' : ''}" title="${escHtml(name)}">${escHtml(name)}</span>
+      <div class="bar-track"><div class="bar-fill" style="width: ${w}%; opacity: ${opacity}"></div></div>
+      <div class="bar-value">
+        <div class="tabular">${fmtBRL(value)}</div>
+        ${secondary ? `<span class="bar-secondary tabular">${escHtml(secondary)}</span>` : ''}
+      </div>
+    </button>
+  `;
+}
+
+function renderBarList(items, key) {
+  if (!items.length) return '<div class="empty">Sem dados disponíveis</div>';
+  const top = items.slice(0, 5);
+  const rest = items.slice(5);
+  const max = Math.max(...top.map(i => i.total), rest.reduce((s, x) => s + x.total, 0) || 0);
+  let html = '<div class="bar-list">';
+  top.forEach((item, i) => {
+    const opacity = Math.max(0.55, 1 - i * 0.12);
+    const dataAttr = `data-bar="${key}" data-name="${escHtml(item.name)}"`;
+    html += barRow(item.name, item.total, max, `${item.count} ${item.count === 1 ? 'compra' : 'compras'}`, opacity, false, dataAttr);
+  });
+  if (rest.length) {
+    const restTotal = rest.reduce((s, x) => s + x.total, 0);
+    html += barRow(`Outros (${rest.length})`, restTotal, max, null, 0.4, true, '');
+  }
+  return html + '</div>';
+}
+
+function renderInsights() {
+  const txs = getFiltered();
+  const compras = txs.filter(t => t.tipo === 'compra');
+  if (!compras.length) return '';
+
+  const sectors = groupBy(txs, 'setor');
+  const suppliers = groupBy(txs, 'fornecedor');
+  // Agrupa por palavras-chave significativas pra capturar recorrência
+  // Ex: "COMPRA DE 1 SOLDA ESTANHO 1MM..." e "COMPRA DE 1 SOLDA ESTANHO 1MM (...)" → mesmo item
+  const STOPWORDS = new Set([
+    'compra','pagamento','reembolso','kit','kits','pacote','pacotes',
+    'unidade','unidades','und','un','pç','peça','peças','caixa','caixas',
+    'rolo','rolos','fardamento','fardamentos','par','pares',
+    'de','do','da','dos','das','com','para','pra','no','na','em','por',
+    'mil','frete','cm','mm','kg','ml',
+    'a','o','e','ao','à','às','um','uma','uns','umas',
+  ]);
+  function productKey(produto) {
+    let s = (produto || '').toLowerCase();
+    s = s.replace(/\([^)]*\)/g, ' ');             // remove parênteses
+    s = s.replace(/\b\d+[.,]?\d*\b/g, ' ');      // remove números
+    s = s.replace(/[^\w\s\-/áàâãéêíóôõúç]/g, ' '); // remove pontuação
+    const tokens = s.split(/\s+/).filter(t => t.length > 2 && !STOPWORDS.has(t));
+    return tokens.slice(0, 3).join(' ') || produto.substring(0, 30).toLowerCase();
+  }
+  function prettyName(produto) {
+    // Versão amigável pra exibir: pega o nome do produto e capitaliza
+    const cleaned = produto.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+    return cleaned.length > 50 ? cleaned.substring(0, 50) + '…' : cleaned;
+  }
+  const products = (() => {
+    const map = new Map();
+    compras.forEach(t => {
+      const key = productKey(t.produto);
+      if (!map.has(key)) {
+        map.set(key, { key, name: prettyName(t.produto), occurrences: 0, qty: 0, total: 0, samples: [] });
+      }
+      const e = map.get(key);
+      e.occurrences += 1;
+      e.qty += t.quantidade;
+      e.total += t.valor_total;
+      // Mantém o nome mais curto/limpo como representativo
+      const candidate = prettyName(t.produto);
+      if (candidate.length < e.name.length) e.name = candidate;
+    });
+    return Array.from(map.values())
+      .filter(p => p.occurrences > 1) // só mostra recorrentes
+      .sort((a, b) => b.occurrences - a.occurrences || b.total - a.total);
+  })();
+
+  const growth = getGrowth();
+  const concentration = suppliers.length ? suppliers[0].percentage : 0;
+
+  const cards = [];
+  if (sectors.length) {
+    cards.push(`
+      <button class="insight clickable" data-filter-set="sector" data-value="${escHtml(sectors[0].name)}">
+        <div class="insight-label">Setor que mais gasta</div>
+        <div class="insight-title">${escHtml(sectors[0].name)}</div>
+        <div class="insight-value tabular">${fmtBRL(sectors[0].total)}</div>
+      </button>
+    `);
+  }
+  if (suppliers.length) {
+    cards.push(`
+      <button class="insight clickable" data-filter-set="supplier" data-value="${escHtml(suppliers[0].name)}">
+        <div class="insight-label">Fornecedor principal</div>
+        <div class="insight-title">${escHtml(suppliers[0].name)}</div>
+        <div class="insight-value">${suppliers[0].count} compras · ${concentration.toFixed(0)}% do total</div>
+      </button>
+    `);
+  }
+  if (products.length) {
+    const top = products[0];
+    cards.push(`
+      <div class="insight">
+        <div class="insight-label">Item mais recorrente</div>
+        <div class="insight-title">${escHtml(top.name)}</div>
+        <div class="insight-value">${top.occurrences} compras · ${fmtBRL(top.total)}</div>
+      </div>
+    `);
+  }
+  if (growth !== 0 && state.filters.month !== 'todos') {
+    const isUp = growth > 0;
+    cards.push(`
+      <div class="insight ${isUp ? 'danger' : 'success'}">
+        <div class="insight-label">Variação vs mês anterior</div>
+        <div class="insight-title tabular">${isUp ? '+' : ''}${growth.toFixed(1)}%</div>
+        <div class="insight-value">${isUp ? 'Acima do mês anterior' : 'Abaixo do mês anterior'}</div>
+      </div>
+    `);
+  }
+  if (concentration > 50 && suppliers.length > 1) {
+    cards.push(`
+      <div class="insight warning">
+        <div class="insight-label">Concentração alta</div>
+        <div class="insight-title">${concentration.toFixed(0)}% num fornecedor</div>
+        <div class="insight-value">Considere diversificar</div>
+      </div>
+    `);
+  }
+
+  if (!cards.length) return '';
+  return `
+    <div class="section">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Insights</div>
+          <div class="section-desc">O que está se destacando neste período</div>
+        </div>
+      </div>
+      <div class="insights">${cards.slice(0, 6).join('')}</div>
+    </div>
+  `;
+}
+
+function renderMonthlyLineChart() {
+  const data = getMonthlyComparison();
+  if (!data.length) return '<div class="empty">Sem dados</div>';
+  const w = 600, h = 200, padL = 40, padR = 12, padT = 12, padB = 28;
+  const innerW = w - padL - padR;
+  const innerH = h - padT - padB;
+  const allValues = data.flatMap(d => [d.spent, d.budget]);
+  const maxV = Math.max(...allValues, 1);
+  const xs = data.map((_, i) => padL + (innerW * i) / Math.max(1, data.length - 1));
+  const ySpent = data.map(d => padT + innerH - (d.spent / maxV) * innerH);
+  const yBudget = data.map(d => padT + innerH - (d.budget / maxV) * innerH);
+
+  const ticks = 4;
+  const yTicks = Array.from({ length: ticks + 1 }, (_, i) => {
+    const v = (maxV * i) / ticks;
+    const y = padT + innerH - (v / maxV) * innerH;
+    return { v, y };
+  });
+
+  const pathSpent = ySpent.map((y, i) => `${i === 0 ? 'M' : 'L'} ${xs[i]} ${y}`).join(' ');
+  const pathBudget = yBudget.map((y, i) => `${i === 0 ? 'M' : 'L'} ${xs[i]} ${y}`).join(' ');
+
+  return `
+    <svg class="chart-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">
+      ${yTicks.map(t => `
+        <line class="grid" x1="${padL}" y1="${t.y}" x2="${w - padR}" y2="${t.y}"/>
+        <text x="${padL - 6}" y="${t.y + 3}" text-anchor="end">${fmtBRLc(t.v)}</text>
+      `).join('')}
+      <path class="line-budget" d="${pathBudget}"/>
+      <path class="line-spent" d="${pathSpent}"/>
+      ${data.map((d, i) => `<circle class="dot" cx="${xs[i]}" cy="${ySpent[i]}" r="3"/>`).join('')}
+      ${data.map((d, i) => `<text x="${xs[i]}" y="${h - 8}" text-anchor="middle">${d.label}</text>`).join('')}
+    </svg>
+    <div class="chart-legend">
+      <span><span class="swatch" style="background: var(--text);"></span>Gasto</span>
+      <span><span class="swatch" style="border-top: 2px dashed var(--text-muted); height: 0;"></span>Orçamento</span>
+    </div>
+  `;
+}
+
+function editableSector(tx) {
+  const isUnspecified = tx.setor === 'Não especificado';
+  return `
+    <button class="editable ${isUnspecified ? 'unspecified' : ''}" data-edit-tx="${tx.id}" title="Clique para editar">
+      <span class="editable-text">${escHtml(tx.setor)}</span>
+      <svg class="pencil" viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+      </svg>
+    </button>
+  `;
+}
+
+// =================================================
+// TAB: OVERVIEW
+// =================================================
+function renderOverview() {
+  const txs = getFiltered();
+  const sectors = groupBy(txs, 'setor');
+  const suppliers = groupBy(txs, 'fornecedor');
+  return `
+    ${renderHero()}
+    ${renderMetrics()}
+    ${renderInsights()}
+    <div class="two-col">
+      <div class="card">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Gasto por setor</div>
+            <div class="section-desc">Clique pra filtrar</div>
+          </div>
+          <div class="section-action">Top ${Math.min(5, sectors.length)}</div>
+        </div>
+        ${renderBarList(sectors, 'sector')}
+      </div>
+      <div class="card">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Gasto por fornecedor</div>
+          </div>
+          <div class="section-action">Top ${Math.min(5, suppliers.length)}</div>
+        </div>
+        ${renderBarList(suppliers, 'supplier')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Histórico mensal</div>
+          <div class="section-desc">Gasto vs orçamento ao longo dos meses</div>
+        </div>
+      </div>
+      ${renderMonthlyLineChart()}
+    </div>
+  `;
+}
+
+// =================================================
+// TAB: SECTORS
+// =================================================
+function renderSectors() {
+  const txs = getFiltered();
+  const sectors = groupBy(txs, 'setor');
+  const m = getMetrics();
+  const avg = sectors.length > 0 ? m.spent / sectors.length : 0;
+
+  // Para cada setor, montar lista de transações
+  const sectorTxsHtml = sectors.map(s => {
+    const sTxs = txs.filter(t => t.setor === s.name && t.tipo === 'compra')
+      .sort((a, b) => b.valor_total - a.valor_total);
+    const isUnspec = s.name === 'Não especificado';
+    return `
+      <details class="card" style="padding: 0; overflow: hidden; margin-bottom: 8px;">
+        <summary style="padding: 12px 18px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+          <div style="min-width: 0; display: flex; align-items: center; gap: 8px;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-muted); flex-shrink: 0;"><path d="M9 18l6-6-6-6"/></svg>
+            <span style="font-weight: 500; font-size: 13px; ${isUnspec ? 'color: var(--warning-fg); font-style: italic;' : ''}; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escHtml(s.name)}</span>
+            ${isUnspec ? '<span class="badge badge-warning">Sem categoria</span>' : ''}
+          </div>
+          <div style="display: flex; gap: 16px; align-items: center; font-size: 12px; color: var(--text-muted); flex-shrink: 0;">
+            <span class="tabular">${s.count} compra(s)</span>
+            <span class="tabular" style="color: var(--text); font-weight: 500;">${fmtBRL(s.total)}</span>
+          </div>
+        </summary>
+        <div class="table-wrap" style="border-top: 1px solid var(--border);">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Produto</th>
+                <th>Fornecedor</th>
+                <th class="right">Valor</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sTxs.map(t => `
+                <tr>
+                  <td class="muted tabular">${fmtDate(t.data)}</td>
+                  <td class="truncate" title="${escHtml(t.produto)}">${escHtml(t.produto)}</td>
+                  <td class="muted">${escHtml(t.fornecedor)}</td>
+                  <td class="right tabular">${fmtBRL(t.valor_total)}</td>
+                  <td class="right">
+                    <button class="iconbtn" data-edit-tx="${t.id}" title="Editar setor/fornecedor" style="width: 24px; height: 24px;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </details>
+    `;
+  }).join('');
+
+  return `
+    <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
+      ${metric('Maior gasto', sectors[0]?.name || '—', sectors[0] ? fmtBRL(sectors[0].total) : null)}
+      ${metric('Setores ativos', sectors.length, 'com gastos no período')}
+      ${metric('Gasto médio', fmtBRL(avg), 'por setor')}
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Detalhamento por setor</div>
+          <div class="section-desc">${sectors.length} setores · clique para expandir e editar transações</div>
+        </div>
+      </div>
+      ${sectorTxsHtml || '<div class="empty">Nenhum dado</div>'}
+    </div>
+  `;
+}
+
+// =================================================
+// TAB: BUDGET
+// =================================================
+function renderBudget() {
+  const months = getMonthlyComparison();
+  const m = getMetrics();
+  const remaining = m.avgTicket > 0 ? Math.max(0, Math.ceil(m.balance / m.avgTicket)) : 0;
+
+  const monthsHtml = months.map(month => {
+    const st = statusOf(month.percentage);
+    const fillPct = Math.min(month.percentage, 100);
+    const monthRecharges = state.recharges.filter(r => r.month === month.key);
+    return `
+      <div class="month-row">
+        <div class="month-header">
+          <div>
+            <span class="month-name">${month.label}</span>
+            <span class="badge badge-${st.key}">${st.label}</span>
+            ${monthRecharges.length > 0 ? `<span style="font-size: 11px; color: var(--text-subtle); margin-left: 8px;">${monthRecharges.length} recarga(s)</span>` : ''}
+          </div>
+          <div class="month-meta tabular">
+            <strong style="color: var(--text)">${fmtBRL(month.spent)}</strong> / ${fmtBRL(month.budget)}
+            <span style="margin-left: 8px;">${month.percentage.toFixed(1)}%</span>
+          </div>
+        </div>
+        <div class="month-bar"><div class="bar-fill fill-${st.key}" style="width: ${fillPct}%"></div></div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    ${renderHero()}
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Comparativo mensal</div>
+          <div class="section-desc">Como o orçamento foi consumido em cada mês</div>
+        </div>
+      </div>
+      ${monthsHtml}
+    </div>
+    <div class="card" style="margin-top: 16px;">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Projeção</div>
+          <div class="section-desc">Estimativa simples baseada no ticket médio</div>
+        </div>
+      </div>
+      <div class="alert-info">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M5 12H3"/><path d="M21 12h-2"/><path d="M18.36 5.64l-1.41 1.41"/><path d="M6.34 17.66l-1.41 1.41"/></svg>
+        <span>
+          Mantendo o ticket médio de <strong class="tabular">${fmtBRL(m.avgTicket)}</strong>,
+          o saldo de <strong class="tabular">${fmtBRL(m.balance)}</strong>
+          cobre aproximadamente <strong class="tabular">${remaining} compra(s)</strong>.
+        </span>
+      </div>
+    </div>
+  `;
+}
+
+// =================================================
+// TAB: RECHARGES
+// =================================================
+function renderRecharges() {
+  const sorted = [...state.recharges].sort((a, b) => a.date.localeCompare(b.date));
+  const total = sorted.reduce((s, r) => s + Number(r.amount), 0);
+
+  // Agrupado por mês
+  const byMonth = MONTH_ORDER.map(m => {
+    const recs = sorted.filter(r => r.month === m);
+    return { month: m, recharges: recs, total: recs.reduce((s, r) => s + Number(r.amount), 0) };
+  }).filter(g => g.recharges.length > 0);
+
+  return `
+    <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
+      ${metric('Total recarregado', fmtBRL(total), `${sorted.length} recargas`)}
+      ${metric('Média por recarga', fmtBRL(sorted.length > 0 ? total / sorted.length : 0))}
+      ${metric('Última recarga', sorted.length > 0 ? fmtDateLong(sorted[sorted.length - 1].date) : '—',
+                sorted.length > 0 ? fmtBRL(sorted[sorted.length - 1].amount) : null)}
+    </div>
+
+    ${byMonth.map(g => `
+      <div class="card" style="padding: 0; overflow: hidden; margin-bottom: 12px;">
+        <div style="padding: 14px 18px; display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--border);">
+          <div>
+            <div class="section-title" style="text-transform: capitalize;">${g.month}</div>
+            <div class="section-desc">${g.recharges.length} recarga(s) · enviadas pelo financeiro</div>
+          </div>
+          <div class="tabular" style="font-size: 14px; font-weight: 600;">${fmtBRL(g.total)}</div>
+        </div>
+        <div class="recharge-list">
+          ${g.recharges.map(r => `
+            <div class="recharge-row">
+              <div class="recharge-date tabular">${fmtDateLong(r.date)}</div>
+              <div>
+                <div style="font-size: 13px;">Recarga do fundo de caixa</div>
+                <div style="font-size: 11px; color: var(--text-muted);">Enviado por ${escHtml(r.sender)}</div>
+              </div>
+              <div class="recharge-amount tabular">${fmtBRL(r.amount)}</div>
+              <div class="recharge-actions">
+                <button data-edit-recharge="${r.id}" title="Editar">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('') || '<div class="empty">Nenhuma recarga registrada</div>'}
+  `;
+}
+
+// =================================================
+// TAB: PENDING
+// =================================================
+function renderPending() {
+  const pending = getAllPending();
+
+  if (pending.length === 0) {
+    return `
+      <div class="card" style="text-align: center; padding: 48px 24px;">
+        <div style="display: inline-flex; width: 48px; height: 48px; border-radius: 50%; background: var(--success-bg); color: var(--success-fg); align-items: center; justify-content: center; margin-bottom: 12px;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <div class="section-title" style="font-size: 14px;">Tudo classificado!</div>
+        <div class="section-desc" style="margin-top: 4px;">Não há transações com setor ou fornecedor pendente.</div>
+      </div>
+    `;
+  }
+
+  // Stats
+  const noSector = pending.filter(t => isUnspecified(t.setor)).length;
+  const noSupplier = pending.filter(t => isUnspecified(t.fornecedor)).length;
+  const total = pending.reduce((s, t) => s + t.valor_total, 0);
+
+  // Agrupar por mês
+  const grouped = {};
+  pending.forEach(t => {
+    const m = t.id.split('_')[0];
+    if (!grouped[m]) grouped[m] = [];
+    grouped[m].push(t);
+  });
+
+  const groupsHtml = MONTH_ORDER
+    .filter(m => grouped[m])
+    .map(m => `
+      <div style="margin-bottom: 16px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between; padding: 0 4px 8px;">
+          <div class="section-title" style="text-transform: capitalize;">${m}</div>
+          <div class="section-desc">${grouped[m].length} pendência(s)</div>
+        </div>
+        ${grouped[m].map(t => `
+          <div class="pending-card">
+            <div class="pending-card-info">
+              <div class="pending-card-meta">
+                ${isUnspecified(t.setor)
+                  ? '<span class="tag-warn">Setor pendente</span>'
+                  : `<span class="tag-ok">Setor: ${escHtml(t.setor.length > 30 ? t.setor.substring(0,30)+'…' : t.setor)}</span>`}
+                ${isUnspecified(t.fornecedor)
+                  ? '<span class="tag-warn">Fornecedor pendente</span>'
+                  : `<span class="tag-ok">Fornecedor: ${escHtml(t.fornecedor)}</span>`}
+              </div>
+              <div class="pending-card-product">${escHtml(t.produto)}</div>
+              ${t.detalhamento ? `<div class="pending-card-detail">${escHtml(t.detalhamento)}</div>` : ''}
+            </div>
+            <div class="pending-card-amount">
+              <div class="value">${fmtBRL(t.valor_total)}</div>
+              <div class="date">${fmtDateLong(t.data)}</div>
+              <button class="btn btn-sm" data-edit-tx="${t.id}" style="margin-top: 6px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Classificar
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+
+  return `
+    <div class="alert-info" style="margin-bottom: 16px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+      <span>
+        Você tem <strong>${pending.length} transação(ões)</strong> sem classificação completa
+        — ${noSector > 0 ? `${noSector} sem setor` : ''}${noSector > 0 && noSupplier > 0 ? ', ' : ''}${noSupplier > 0 ? `${noSupplier} sem fornecedor` : ''}.
+        Total: <strong class="tabular">${fmtBRL(total)}</strong>.
+      </span>
+    </div>
+    ${groupsHtml}
+  `;
+}
+
+// =================================================
+// TAB: HISTORY
+// =================================================
+function renderHistory() {
+  let txs = getFiltered();
+  if (state.searchTerm) {
+    const q = state.searchTerm.toLowerCase();
+    txs = txs.filter(t =>
+      t.produto.toLowerCase().includes(q) ||
+      t.fornecedor.toLowerCase().includes(q) ||
+      t.setor.toLowerCase().includes(q)
+    );
+  }
+  txs.sort((a, b) => b.data.localeCompare(a.data));
+  const total = txs.reduce((s, t) => s + t.valor_total, 0);
+  const avg = txs.length > 0 ? total / txs.length : 0;
+
+  const rows = txs.map(t => {
+    const isRefund = t.tipo === 'reembolso';
+    const isEdited = false; // edições agora vão direto pro Firestore
+    return `
+      <tr>
+        <td class="muted tabular">${fmtDate(t.data)}</td>
+        <td class="truncate" title="${escHtml(t.produto)}">
+          ${isRefund ? '<span class="badge badge-success">Reembolso</span> ' : ''}${escHtml(t.produto)}
+          ${isEdited ? ' <span class="badge badge-neutral" title="Transação editada">✎</span>' : ''}
+        </td>
+        <td class="muted">${escHtml(t.fornecedor)}</td>
+        <td class="muted truncate" style="max-width: 220px;">${editableSector(t)}</td>
+        <td class="right tabular muted">${t.quantidade}</td>
+        <td class="right tabular" style="font-weight: 500; ${isRefund ? 'color: var(--success-fg);' : ''}">
+          ${isRefund ? '+' : ''}${fmtBRL(t.valor_total)}
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  return `
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" class="search-input" id="search-input" placeholder="Buscar por produto, fornecedor ou setor..." value="${escHtml(state.searchTerm)}" />
+    </div>
+    <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
+      ${metric('Compras', txs.length, state.searchTerm ? 'filtradas' : null)}
+      ${metric('Valor total', fmtBRL(total))}
+      ${metric('Ticket médio', fmtBRL(avg))}
+    </div>
+    <div class="card" style="padding: 0; overflow: hidden;">
+      <div style="padding: 16px 20px;">
+        <div class="section-title">Histórico de compras</div>
+        <div class="section-desc">${txs.length} ${txs.length === 1 ? 'registro' : 'registros'} · clique no setor para editar</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Produto</th>
+              <th>Fornecedor</th>
+              <th>Setor</th>
+              <th class="right">Qtd</th>
+              <th class="right">Valor</th>
+            </tr>
+          </thead>
+          <tbody>${rows || '<tr><td colspan="6" class="empty">Nenhuma transação</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// =================================================
+// FILTER UI
+// =================================================
+function syncFiltersUI() {
+  const f = state.filters;
+  document.querySelectorAll('.dropdown[data-filter]').forEach(d => {
+    const key = d.dataset.filter;
+    const options = FILTER_OPTIONS[key]();
+    const opt = options.find(o => o.value === f[key]) || options[0];
+    const trigger = d.querySelector('[data-trigger]');
+    const valueEl = trigger.querySelector('[data-value-display]');
+    valueEl.textContent = opt.label;
+    const isActive = f[key] !== FILTER_DEFAULTS[key];
+    trigger.classList.toggle('active', isActive);
+  });
+  const hasActive = Object.keys(FILTER_DEFAULTS).some(k => f[k] !== FILTER_DEFAULTS[k]);
+  document.getElementById('clear-filters').classList.toggle('hidden', !hasActive);
+}
+
+// =================================================
+// CUSTOM DROPDOWN
+// =================================================
+const FILTER_OPTIONS = {
+  month: () => Object.entries(MONTH_LABELS).map(([v, l]) => ({ value: v, label: l })),
+  sector: () => [
+    { value: 'all', label: 'Todos os setores' },
+    ...getUniqueSectors().map(s => {
+      const count = getAllTransactions().filter(t => t.setor === s).length;
+      return { value: s, label: s, count };
+    }),
+  ],
+  supplier: () => [
+    { value: 'all', label: 'Todos os fornecedores' },
+    ...getUniqueSuppliers().map(s => {
+      const count = getAllTransactions().filter(t => t.fornecedor === s).length;
+      return { value: s, label: s, count };
+    }),
+  ],
+  type: () => [
+    { value: 'todos', label: 'Todos os tipos' },
+    { value: 'compra', label: 'Compras' },
+    { value: 'reembolso', label: 'Reembolsos' },
+  ],
+};
+
+const FILTER_DEFAULTS = { month: 'janeiro', sector: 'all', supplier: 'all', type: 'todos' };
+
+let openDropdown = null;
+
+function closeAllDropdowns() {
+  document.querySelectorAll('.dropdown.open').forEach(d => d.classList.remove('open'));
+  document.querySelectorAll('.dropdown-menu').forEach(m => m.remove());
+  openDropdown = null;
+}
+
+function openDropdownFor(dropdownEl) {
+  if (openDropdown === dropdownEl) {
+    closeAllDropdowns();
+    return;
+  }
+  closeAllDropdowns();
+
+  const filterKey = dropdownEl.dataset.filter;
+  const options = FILTER_OPTIONS[filterKey]();
+  const currentValue = state.filters[filterKey];
+  const showSearch = options.length > 8;
+
+  const menu = document.createElement('div');
+  menu.className = 'dropdown-menu';
+
+  let html = '';
+  if (showSearch) {
+    html += `<div class="dropdown-search"><input type="text" placeholder="Buscar..." autocomplete="off" /></div>`;
+  }
+  html += '<div class="dropdown-options" data-options>';
+  options.forEach(opt => {
+    const selected = opt.value === currentValue;
+    const isUnspec = opt.value === 'Não especificado';
+    html += `
+      <button class="dropdown-option ${selected ? 'selected' : ''}" data-value="${escHtml(opt.value)}">
+        <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+        <span class="dropdown-option-text" title="${escHtml(opt.label)}">${escHtml(opt.label)}${isUnspec ? '<span class="meta-tag">Pendente</span>' : ''}</span>
+        ${typeof opt.count === 'number' ? `<span class="dropdown-option-count">${opt.count}</span>` : ''}
+      </button>
+    `;
+  });
+  html += '</div>';
+  menu.innerHTML = html;
+  dropdownEl.appendChild(menu);
+  dropdownEl.classList.add('open');
+  openDropdown = dropdownEl;
+
+  // Foco no campo de busca
+  const searchInput = menu.querySelector('.dropdown-search input');
+  if (searchInput) {
+    setTimeout(() => searchInput.focus(), 0);
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      menu.querySelectorAll('.dropdown-option').forEach(opt => {
+        const text = opt.querySelector('.dropdown-option-text').textContent.toLowerCase();
+        opt.style.display = text.includes(q) ? '' : 'none';
+      });
+    });
+    // Enter seleciona o primeiro visível
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const first = Array.from(menu.querySelectorAll('.dropdown-option')).find(o => o.style.display !== 'none');
+        if (first) first.click();
+      } else if (e.key === 'Escape') {
+        closeAllDropdowns();
+      }
+    });
+  }
+
+  // Click numa opção
+  menu.querySelectorAll('.dropdown-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.filters[filterKey] = btn.dataset.value;
+      closeAllDropdowns();
+      render();
+    });
+  });
+
+  // Scroll até a selecionada
+  const selectedEl = menu.querySelector('.dropdown-option.selected');
+  if (selectedEl) {
+    setTimeout(() => selectedEl.scrollIntoView({ block: 'nearest' }), 0);
+  }
+}
+
+// Click fora fecha
+document.addEventListener('click', (e) => {
+  if (!openDropdown) return;
+  if (!openDropdown.contains(e.target)) closeAllDropdowns();
+});
+
+function populateFilterOptions() {
+  // Triggers já estão no HTML — só conectar eventos
+  document.querySelectorAll('.dropdown[data-filter] [data-trigger]').forEach(trigger => {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openDropdownFor(trigger.closest('.dropdown'));
+    });
+  });
+}
+
+// =================================================
+// RENDER
+// =================================================
+function render() {
+  // Esconder + LIMPAR conteúdo das outras abas (senão IDs duplicam)
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.add('hidden');
+    p.innerHTML = '';
+  });
+
+  // Loading state se Firestore ainda não carregou
+  if (!dataLoaded) {
+    const overviewEl = document.getElementById('tab-overview');
+    overviewEl.innerHTML = `
+      <div class="card" style="text-align: center; padding: 64px 24px; color: var(--text-muted);">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 12px; display: block; animation: spin 1s linear infinite;">
+          <path d="M21 12a9 9 0 11-6.219-8.56"/>
+        </svg>
+        <div style="font-size: 13px;">Carregando dados...</div>
+      </div>
+      <style>@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }</style>
+    `;
+    overviewEl.classList.remove('hidden');
+    document.getElementById('crumb-active').textContent = 'Carregando';
+    return;
+  }
+  const panels = {
+    overview: { id: 'tab-overview', html: renderOverview, label: 'Visão geral' },
+    sectors:  { id: 'tab-sectors',  html: renderSectors,  label: 'Setores' },
+    budget:   { id: 'tab-budget',   html: renderBudget,   label: 'Orçamento' },
+    recharges:{ id: 'tab-recharges',html: renderRecharges,label: 'Recargas' },
+    pending:  { id: 'tab-pending',  html: renderPending,  label: 'Pendências' },
+    history:  { id: 'tab-history',  html: renderHistory,  label: 'Histórico' },
+  };
+  const t = panels[state.activeTab];
+  const el = document.getElementById(t.id);
+  el.innerHTML = t.html();
+  el.classList.remove('hidden');
+  document.getElementById('crumb-active').textContent = t.label;
+
+  // Filtros são úteis em todas as abas exceto recargas e pendências
+  const filtersEl = document.getElementById('filters');
+  filtersEl.classList.toggle('hidden', state.activeTab === 'recharges' || state.activeTab === 'pending');
+
+  // Topbar action: botão "Nova recarga" só na aba recharges
+  const topActions = document.getElementById('topbar-actions');
+  if (state.activeTab === 'recharges') {
+    topActions.innerHTML = `
+      <button class="btn btn-primary btn-sm" id="add-recharge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        Nova recarga
+      </button>
+    `;
+    document.getElementById('add-recharge').addEventListener('click', () => openRechargeModal());
+  } else {
+    topActions.innerHTML = '';
+  }
+
+  document.querySelectorAll('.nav-item[data-tab]').forEach(b => {
+    if (b.dataset.tab === state.activeTab) b.setAttribute('aria-current', 'page');
+    else b.removeAttribute('aria-current');
+  });
+
+  syncFiltersUI();
+
+  // Atualiza badge de pendências
+  const pendingCount = getAllPending().length;
+  const badge = document.getElementById('pending-count');
+  if (badge) {
+    if (pendingCount > 0) {
+      badge.textContent = String(pendingCount);
+      badge.classList.remove('hidden');
+    } else {
+      badge.classList.add('hidden');
+    }
+  }
+
+  // Hero toggle (Ver detalhes) — usa querySelector dentro do painel pra evitar IDs duplicados
+  const heroToggle = el.querySelector('#hero-toggle');
+  if (heroToggle) {
+    const detail = el.querySelector('#hero-detail');
+    const chevron = el.querySelector('#hero-chevron');
+    const txtSpan = heroToggle.querySelector('.hero-toggle-text');
+    heroToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isExpanded = heroToggle.dataset.expanded === 'true';
+      detail.classList.toggle('hidden', isExpanded);
+      heroToggle.dataset.expanded = String(!isExpanded);
+      if (txtSpan) txtSpan.textContent = isExpanded ? 'Ver detalhes' : 'Esconder';
+      if (chevron) chevron.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
+    });
+  }
+
+  // Eventos
+  el.querySelectorAll('[data-bar]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.filters[btn.dataset.bar] = btn.dataset.name;
+      render();
+    });
+  });
+  el.querySelectorAll('[data-filter-set]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.filters[btn.dataset.filterSet] = btn.dataset.value;
+      render();
+    });
+  });
+  el.querySelectorAll('[data-edit-tx]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      openEditModal(btn.dataset.editTx);
+    });
+  });
+  el.querySelectorAll('[data-edit-recharge]').forEach(btn => {
+    btn.addEventListener('click', () => openRechargeModal(btn.dataset.editRecharge));
+  });
+
+  const search = document.getElementById('search-input');
+  if (search) {
+    search.addEventListener('input', e => {
+      state.searchTerm = e.target.value;
+      render();
+      const s2 = document.getElementById('search-input');
+      if (s2) {
+        s2.focus();
+        s2.setSelectionRange(state.searchTerm.length, state.searchTerm.length);
+      }
+    });
+  }
+}
+
+document.querySelectorAll('.nav-item[data-tab]').forEach(b => {
+  b.addEventListener('click', () => {
+    state.activeTab = b.dataset.tab;
+    state.searchTerm = '';
+    render();
+  });
+});
+
+document.getElementById('clear-filters').addEventListener('click', () => {
+  state.filters = { ...FILTER_DEFAULTS };
+  closeAllDropdowns();
+  render();
+});
+
+document.getElementById('reset-edits').addEventListener('click', async () => {
+  if (!currentUser) { showToast('Faça login pra resetar'); return; }
+  if (!confirm('Restaurar TODOS os dados ao estado original do Excel? Isso vai reverter todas as edições e recargas. Tem certeza?')) return;
+  await resetToBootstrap();
+  showToast('Dados restaurados');
+});
+
+// THEME
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('theme', t);
+  const lbl = document.getElementById('theme-label');
+  if (lbl) lbl.textContent = t === 'dark' ? 'Modo claro' : 'Modo escuro';
+  const ic = document.getElementById('theme-icon');
+  if (ic) {
+    if (t === 'dark') {
+      ic.innerHTML = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M5 12H3"/><path d="M21 12h-2"/><path d="M18.36 5.64l-1.41 1.41"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M5.64 5.64l1.41 1.41"/><path d="M16.95 16.95l1.41 1.41"/>';
+    } else {
+      ic.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+    }
+  }
+}
+const stored = localStorage.getItem('theme');
+const initialTheme = stored || (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+applyTheme(initialTheme);
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+});
+
+// Esc fecha modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeAllDropdowns();
+    closeModal();
+  }
+});
+
+// =================================================
+// AUTH UI
+// =================================================
+function openLoginModal() {
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal" style="max-width: 360px;">
+        <div class="modal-title">Entrar</div>
+        <div class="modal-desc">Faça login para editar transações e cadastrar recargas</div>
+
+        <div class="form-row">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="login-email" placeholder="seu@email.com" autocomplete="email" />
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Senha</label>
+          <input type="password" class="form-input" id="login-password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+
+        <div id="login-error" style="color: var(--danger-fg); font-size: 12px; margin-top: 8px; display: none;"></div>
+
+        <div class="modal-footer">
+          <button class="btn" id="login-cancel">Cancelar</button>
+          <button class="btn btn-primary" id="login-submit">Entrar</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target.id === 'modal-overlay') closeModal();
+  });
+  document.getElementById('login-cancel').addEventListener('click', closeModal);
+
+  const emailEl = document.getElementById('login-email');
+  const passEl = document.getElementById('login-password');
+  emailEl.focus();
+
+  const submit = async () => {
+    const errEl = document.getElementById('login-error');
+    errEl.style.display = 'none';
+    const email = emailEl.value.trim();
+    const password = passEl.value;
+    if (!email || !password) {
+      errEl.textContent = 'Preencha email e senha';
+      errEl.style.display = 'block';
+      return;
+    }
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      closeModal();
+      showToast('Logado com sucesso');
+    } catch (e) {
+      let msg = 'Erro ao entrar';
+      if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') {
+        msg = 'Email ou senha incorretos';
+      } else if (e.code === 'auth/too-many-requests') {
+        msg = 'Muitas tentativas. Tente novamente em alguns minutos.';
+      } else if (e.code === 'auth/network-request-failed') {
+        msg = 'Sem conexão com a internet';
+      }
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+  };
+  document.getElementById('login-submit').addEventListener('click', submit);
+  passEl.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+  emailEl.addEventListener('keydown', e => { if (e.key === 'Enter') passEl.focus(); });
+}
+
+async function doLogout() {
+  await signOut(auth);
+  showToast('Você saiu');
+}
+
+function updateAuthUI() {
+  const authBtn = document.getElementById('auth-btn');
+  const importBtn = document.getElementById('import-btn');
+  if (currentUser) {
+    authBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/></svg>
+      <span style="max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escHtml(currentUser.email.split('@')[0])}</span>
+    `;
+    authBtn.title = `${currentUser.email} — clique pra sair`;
+    if (importBtn) importBtn.classList.remove('hidden');
+  } else {
+    authBtn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>
+      <span>Entrar</span>
+    `;
+    authBtn.title = 'Entrar para editar';
+    if (importBtn) importBtn.classList.add('hidden');
+  }
+}
+
+// =================================================
+// IMPORT EXCEL
+// =================================================
+function openImportModal() {
+  if (!currentUser) { openLoginModal(); return; }
+
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal" style="max-width: 520px;">
+        <div class="modal-title">Importar Excel</div>
+        <div class="modal-desc">
+          Selecione seu arquivo .xlsx com as abas dos meses (janeiro, fevereiro, março, abril...).
+          As colunas devem ser: <strong>DATA, PRODUTO, QUANTIDADE, VALOR TOTAL, VALOR UNITÁRIO, FRETE, DETALHAMENTO DA COMPRA, SETOR/CUSTO, FORNECEDOR</strong>.
+        </div>
+
+        <div class="form-row">
+          <input type="file" class="form-input" id="import-file" accept=".xlsx,.xls" style="padding: 8px;" />
+        </div>
+
+        <div id="import-preview" style="margin-top: 12px; font-size: 12px; color: var(--text-muted); max-height: 200px; overflow-y: auto;"></div>
+        <div id="import-progress" style="margin-top: 8px; font-size: 12px; color: var(--info-fg); display: none;"></div>
+
+        <div class="alert-info" style="margin-top: 14px; font-size: 12px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          <span>O importador <strong>adiciona ou atualiza</strong> transações sem apagar as existentes. Transações com mesma data, valor e produto são consideradas idênticas.</span>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn" id="import-cancel">Cancelar</button>
+          <button class="btn btn-primary" id="import-submit" disabled>Importar</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target.id === 'modal-overlay') closeModal();
+  });
+  document.getElementById('import-cancel').addEventListener('click', closeModal);
+
+  let parsedTxs = [];
+  const fileInput = document.getElementById('import-file');
+  const preview = document.getElementById('import-preview');
+  const submitBtn = document.getElementById('import-submit');
+
+  fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    preview.innerHTML = '<em>Lendo arquivo...</em>';
+    try {
+      const XLSX = await loadXLSX();
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type: 'array' });
+      parsedTxs = parseWorkbook(XLSX, wb);
+      const byMonth = {};
+      parsedTxs.forEach(t => { byMonth[t.mes] = (byMonth[t.mes] || 0) + 1; });
+      const summary = Object.entries(byMonth).map(([m, c]) => `<strong>${m}</strong>: ${c}`).join(' · ');
+      preview.innerHTML = `
+        <div style="color: var(--success-fg); margin-bottom: 6px;"><strong>✓ ${parsedTxs.length} transações encontradas</strong></div>
+        <div>${summary}</div>
+      `;
+      submitBtn.disabled = false;
+    } catch (err) {
+      preview.innerHTML = `<div style="color: var(--danger-fg);">Erro: ${escHtml(err.message)}</div>`;
+      submitBtn.disabled = true;
+    }
+  });
+
+  submitBtn.addEventListener('click', async () => {
+    if (!parsedTxs.length) return;
+    submitBtn.disabled = true;
+    const progressEl = document.getElementById('import-progress');
+    progressEl.style.display = 'block';
+    try {
+      let written = 0;
+      // Firestore: max 500 ops por batch
+      const chunks = [];
+      for (let i = 0; i < parsedTxs.length; i += 400) {
+        chunks.push(parsedTxs.slice(i, i + 400));
+      }
+      for (const chunk of chunks) {
+        const batch = writeBatch(db);
+        chunk.forEach(t => {
+          const { id, ...rest } = t;
+          batch.set(doc(db, 'transactions', id), rest);
+        });
+        await batch.commit();
+        written += chunk.length;
+        progressEl.textContent = `Salvando... ${written}/${parsedTxs.length}`;
+      }
+      progressEl.innerHTML = `<span style="color: var(--success-fg);">✓ ${written} transações importadas</span>`;
+      setTimeout(() => { closeModal(); showToast(`${written} transações importadas`); }, 1200);
+    } catch (e) {
+      console.error(e);
+      progressEl.innerHTML = `<span style="color: var(--danger-fg);">Erro: ${escHtml(e.message)}</span>`;
+      submitBtn.disabled = false;
+    }
+  });
+}
+
+// Lazy load XLSX (SheetJS) só quando precisar
+let _XLSX = null;
+async function loadXLSX() {
+  if (_XLSX) return _XLSX;
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    s.onload = () => { _XLSX = window.XLSX; resolve(_XLSX); };
+    s.onerror = () => reject(new Error('Falha ao carregar a biblioteca XLSX'));
+    document.head.appendChild(s);
+  });
+}
+
+function normalizeText(s) {
+  return String(s ?? '').replace(/\s+/g, ' ').trim();
+}
+
+function titleSmart(s) {
+  s = normalizeText(s);
+  if (!s || s === '-') return '';
+  return s.split(' ').map(w => {
+    if (!w) return w;
+    if (w.length <= 4 && w === w.toUpperCase() && /^[A-Z]+$/.test(w)) return w;
+    if (w === w.toUpperCase()) {
+      return w.charAt(0) + w.slice(1).toLowerCase();
+    }
+    return w.charAt(0).toUpperCase() + w.slice(1);
+  }).join(' ');
+}
+
+function excelDateToISO(v) {
+  if (!v) return null;
+  if (typeof v === 'string') {
+    const d = new Date(v);
+    if (!isNaN(d)) return d.toISOString().slice(0, 10);
+    return null;
+  }
+  if (typeof v === 'number') {
+    if (v < 1000) return null;
+    // Excel epoch: 1899-12-30
+    const ms = (v - 25569) * 86400 * 1000;
+    const d = new Date(ms);
+    return d.toISOString().slice(0, 10);
+  }
+  if (v instanceof Date) {
+    return v.toISOString().slice(0, 10);
+  }
+  return null;
+}
+
+function parseWorkbook(XLSX, wb) {
+  const result = [];
+  const monthMap = {
+    'janeiro': 'janeiro', 'fevereiro': 'fevereiro', 'março': 'março', 'marco': 'março',
+    'abril': 'abril', 'maio': 'maio', 'junho': 'junho', 'julho': 'julho',
+    'agosto': 'agosto', 'setembro': 'setembro', 'outubro': 'outubro',
+    'novembro': 'novembro', 'dezembro': 'dezembro',
+  };
+
+  wb.SheetNames.forEach(sheetName => {
+    const norm = sheetName.toLowerCase().trim();
+    const mes = monthMap[norm];
+    if (!mes) return;
+
+    const ws = wb.Sheets[sheetName];
+    const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
+
+    // Achar linha de cabeçalho (que contém "DATA")
+    let headerRow = -1;
+    for (let i = 0; i < Math.min(aoa.length, 20); i++) {
+      const row = aoa[i] || [];
+      if (row.some(c => String(c || '').toUpperCase().trim() === 'DATA')) {
+        headerRow = i;
+        break;
+      }
+    }
+    if (headerRow < 0) return;
+
+    const headers = (aoa[headerRow] || []).map(h => String(h || '').trim().toUpperCase());
+    const idx = (name) => headers.findIndex(h => h.replace(/\s/g, '') === name.replace(/\s/g, ''));
+
+    const iData = idx('DATA');
+    const iProd = idx('PRODUTO');
+    const iQtd = idx('QUANTIDADE');
+    const iVal = idx('VALORTOTAL');
+    const iUni = idx('VALORUNITÁRIO') >= 0 ? idx('VALORUNITÁRIO') : idx('VALORUNITARIO');
+    const iFre = idx('FRETE');
+    const iDet = idx('DETALHAMENTODACOMPRA');
+    const iSet = idx('SETOR/CUSTO') >= 0 ? idx('SETOR/CUSTO') : idx('SETOR/ CUSTO'.replace(/\s/g, ''));
+    const iFor = idx('FORNECEDOR');
+
+    for (let r = headerRow + 1; r < aoa.length; r++) {
+      const row = aoa[r] || [];
+      const valor = row[iVal];
+      if (valor == null || valor === 0 || valor === '') continue;
+      const dataIso = excelDateToISO(row[iData]);
+      if (!dataIso) continue;
+      const produto = normalizeText(row[iProd]);
+      if (!produto) continue;
+
+      let setor = titleSmart(row[iSet]);
+      if (!setor) setor = 'Não especificado';
+      let fornecedor = titleSmart(row[iFor]);
+      if (!fornecedor) fornecedor = 'Não especificado';
+
+      const valorNum = Number(valor) || 0;
+      const tipo = produto.toUpperCase().includes('REEMBOLSO') ? 'reembolso' : 'compra';
+
+      // Hash estável para detectar duplicatas
+      const sig = `${dataIso}|${valorNum}|${produto.substring(0, 60)}`;
+      const id = simpleHash(sig);
+
+      result.push({
+        id,
+        mes,
+        data: dataIso,
+        produto,
+        quantidade: Number(row[iQtd]) || 1,
+        valor_total: Math.round(valorNum * 100) / 100,
+        valor_unitario: Math.round((Number(row[iUni]) || 0) * 100) / 100,
+        frete: Math.round((Number(row[iFre]) || 0) * 100) / 100,
+        detalhamento: normalizeText(row[iDet]),
+        setor,
+        fornecedor,
+        tipo,
+      });
+    }
+  });
+
+  // Tratar duplicatas adicionando sufixo no hash
+  const counts = {};
+  return result.map(t => {
+    counts[t.id] = (counts[t.id] || 0) + 1;
+    if (counts[t.id] > 1) {
+      t.id = simpleHash(t.id + '|' + counts[t.id]);
+    }
+    return t;
+  });
+}
+
+function simpleHash(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h) + s.charCodeAt(i);
+    h |= 0;
+  }
+  // Hex de 16 chars + parte do hash decimal
+  return ('0000000000000000' + Math.abs(h).toString(16)).slice(-16);
+}
+
+// =================================================
+// RESET / BOOTSTRAP
+// =================================================
+async function resetToBootstrap() {
+  // Apagar todas as transações e recargas, depois popular com bootstrap
+  if (!currentUser) { showToast('Faça login pra resetar'); return; }
+  try {
+    showToast('Restaurando dados...');
+    // Apagar
+    const txSnap = await getDocs(collection(db, 'transactions'));
+    const batch1 = writeBatch(db);
+    txSnap.forEach(d => batch1.delete(d.ref));
+    await batch1.commit();
+
+    const recSnap = await getDocs(collection(db, 'recharges'));
+    const batch2 = writeBatch(db);
+    recSnap.forEach(d => batch2.delete(d.ref));
+    await batch2.commit();
+
+    await populateBootstrap();
+  } catch (e) {
+    console.error(e);
+    showToast('Erro ao resetar: ' + e.message);
+  }
+}
+
+async function populateBootstrap() {
+  const txs = [];
+  for (const m of MONTH_ORDER) {
+    (BOOTSTRAP_DATA[m]?.transactions || []).forEach(t => txs.push({ ...t, mes: m }));
+  }
+  // Em chunks de 400
+  for (let i = 0; i < txs.length; i += 400) {
+    const batch = writeBatch(db);
+    txs.slice(i, i + 400).forEach(t => {
+      const { id, ...rest } = t;
+      batch.set(doc(db, 'transactions', id), rest);
+    });
+    await batch.commit();
+  }
+  // Recharges padrão
+  const defaultRecharges = [
+    { id: 'r-2026-01-05-5000', date: '2026-01-05', month: 'janeiro', amount: 5000, sender: 'Financeiro' },
+    { id: 'r-2026-02-03-2000', date: '2026-02-03', month: 'fevereiro', amount: 2000, sender: 'Financeiro' },
+    { id: 'r-2026-02-26-2000', date: '2026-02-26', month: 'fevereiro', amount: 2000, sender: 'Financeiro' },
+    { id: 'r-2026-03-13-2000', date: '2026-03-13', month: 'março', amount: 2000, sender: 'Financeiro' },
+    { id: 'r-2026-04-02-2000', date: '2026-04-02', month: 'abril', amount: 2000, sender: 'Financeiro' },
+    { id: 'r-2026-04-17-2000', date: '2026-04-17', month: 'abril', amount: 2000, sender: 'Financeiro' },
+  ];
+  const batch = writeBatch(db);
+  defaultRecharges.forEach(r => {
+    const { id, ...rest } = r;
+    batch.set(doc(db, 'recharges', id), rest);
+  });
+  await batch.commit();
+}
+
+// =================================================
+// AUTH STATE LISTENER + AUTO-BOOTSTRAP
+// =================================================
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+  updateAuthUI();
+  render();
+
+  // Se acabou de logar e o banco está vazio, bootstrapar
+  if (user) {
+    const snap = await getDocs(collection(db, 'transactions'));
+    if (snap.empty) {
+      const goBootstrap = confirm('Banco de dados vazio. Quer importar os dados iniciais (jan-abr 2026) agora?');
+      if (goBootstrap) {
+        showToast('Importando dados iniciais...');
+        try {
+          await populateBootstrap();
+          showToast('Dados iniciais importados');
+        } catch (e) {
+          showToast('Erro: ' + e.message);
+        }
+      }
+    }
+  }
+});
+
+// =================================================
+// INIT
+// =================================================
+populateFilterOptions();
+startFirestoreListeners();
+render();
+
+// Auth button no topo
+document.getElementById('auth-btn').addEventListener('click', () => {
+  if (currentUser) {
+    if (confirm('Sair da conta?')) doLogout();
+  } else {
+    openLoginModal();
+  }
+});
+
+// Import button
+const importBtn = document.getElementById('import-btn');
+if (importBtn) importBtn.addEventListener('click', openImportModal);
+
+</script>
+</body>
+</html>
