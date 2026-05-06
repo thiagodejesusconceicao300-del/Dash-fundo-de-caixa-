@@ -1,4 +1,4 @@
- <!doctype html>
+<!doctype html>
 <html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="utf-8" />
@@ -1188,7 +1188,8 @@
 // =================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
 import {
-  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+  createUserWithEmailAndPassword
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, collection, doc, getDoc, getDocs, setDoc, deleteDoc,
@@ -1207,6 +1208,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+
+// App secundária só pra criar novos usuários sem deslogar o admin atual
+// (createUserWithEmailAndPassword faz login automaticamente — usar 2ª instância evita esse efeito)
+const secondaryApp = initializeApp(firebaseConfig, 'secondary');
+const secondaryAuth = getAuth(secondaryApp);
 
 // =================================================
 // DATA — vem do Firestore
@@ -2486,6 +2492,191 @@ async function removeUser(userId) {
   }
 }
 
+async function createNewUser(email, password, role) {
+  if (!isAdmin()) { showToast('Apenas admins podem cadastrar'); return false; }
+  try {
+    // Cria o user na 2ª instância (não desloga o admin atual)
+    const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+    const newUid = cred.user.uid;
+    // Cria o documento /users/{uid} já com o role escolhido
+    // OBS: nas regras, o create de /users/{uid} exige request.auth.uid == uid.
+    // Como a 2ª instância está logada com o novo user, isso funciona!
+    await setDoc(doc(db, 'users', newUid), {
+      email,
+      role,
+      createdAt: new Date().toISOString(),
+      createdBy: currentUser.email,
+    });
+    // Desloga da 2ª instância (limpa)
+    await signOut(secondaryAuth);
+    return true;
+  } catch (e) {
+    console.error(e);
+    let msg = 'Erro ao criar usuário';
+    if (e.code === 'auth/email-already-in-use') msg = 'Esse email já está cadastrado';
+    else if (e.code === 'auth/invalid-email') msg = 'Email inválido';
+    else if (e.code === 'auth/weak-password') msg = 'Senha precisa ter no mínimo 6 caracteres';
+    showToast(msg);
+    return false;
+  }
+}
+
+function generatePassword() {
+  // 10 caracteres aleatórios fáceis de digitar (sem caracteres confundíveis)
+  const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let p = '';
+  for (let i = 0; i < 10; i++) p += chars[Math.floor(Math.random() * chars.length)];
+  return p;
+}
+
+function openAddUserModal() {
+  if (!isAdmin()) { showToast('Apenas admins'); return; }
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal" style="max-width: 440px;">
+        <div class="modal-title">Adicionar pessoa</div>
+        <div class="modal-desc">Cadastra um novo colaborador no dashboard</div>
+
+        <div class="form-row">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-input" id="new-email" placeholder="pessoa@empresa.com" autocomplete="off" />
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Senha temporária</label>
+          <div style="display: flex; gap: 6px;">
+            <input type="text" class="form-input" id="new-password" placeholder="Mínimo 6 caracteres" style="flex: 1;" />
+            <button class="btn btn-sm" id="gen-password" type="button" title="Gerar senha aleatória">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg>
+              Gerar
+            </button>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
+            Você precisa anotar e enviar pra pessoa. Ela poderá trocar depois.
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Papel</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <label class="role-option" style="display: flex; flex-direction: column; gap: 4px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">
+              <input type="radio" name="new-role" value="viewer" checked style="display: none;" />
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Visualizador
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted);">Só consulta os dados</div>
+            </label>
+            <label class="role-option" style="display: flex; flex-direction: column; gap: 4px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer;">
+              <input type="radio" name="new-role" value="admin" style="display: none;" />
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+                Admin
+              </div>
+              <div style="font-size: 11px; color: var(--text-muted);">Edita e cadastra tudo</div>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn" id="add-user-cancel">Cancelar</button>
+          <button class="btn btn-primary" id="add-user-submit">Adicionar</button>
+        </div>
+      </div>
+    </div>
+    <style>
+      .role-option { transition: border-color .12s, background .12s; }
+      .role-option:has(input:checked) { border-color: var(--text); background: var(--surface-2); }
+      .role-option:hover { background: var(--surface-2); }
+    </style>
+  `;
+
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target.id === 'modal-overlay') closeModal();
+  });
+  document.getElementById('add-user-cancel').addEventListener('click', closeModal);
+
+  document.getElementById('gen-password').addEventListener('click', () => {
+    document.getElementById('new-password').value = generatePassword();
+  });
+
+  document.getElementById('add-user-submit').addEventListener('click', async () => {
+    const email = document.getElementById('new-email').value.trim();
+    const password = document.getElementById('new-password').value;
+    const role = document.querySelector('input[name="new-role"]:checked').value;
+
+    if (!email) { showToast('Informe o email'); return; }
+    if (!password || password.length < 6) { showToast('Senha precisa ter no mínimo 6 caracteres'); return; }
+
+    const submitBtn = document.getElementById('add-user-submit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Criando...';
+
+    const ok = await createNewUser(email, password, role);
+    if (ok) {
+      closeModal();
+      // Mostra modal de sucesso com credenciais
+      showCredentialsModal(email, password, role);
+    } else {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Adicionar';
+    }
+  });
+
+  setTimeout(() => document.getElementById('new-email').focus(), 100);
+}
+
+function showCredentialsModal(email, password, role) {
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal" style="max-width: 440px;">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--success-bg); color: var(--success-fg); display: flex; align-items: center; justify-content: center;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <div class="modal-title" style="margin: 0;">Pessoa adicionada</div>
+        </div>
+        <div class="modal-desc">Anote ou copie as credenciais e envie pra pessoa por um canal seguro (WhatsApp, email pessoal, etc).</div>
+
+        <div style="background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin: 16px 0;">
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">Email</div>
+          <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; word-break: break-all; margin-bottom: 12px;">${escHtml(email)}</div>
+
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">Senha</div>
+          <div style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; word-break: break-all; margin-bottom: 12px;">${escHtml(password)}</div>
+
+          <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">Papel</div>
+          <div style="font-size: 13px;">${role === 'admin' ? '👑 Admin (edita tudo)' : '👀 Visualizador (só consulta)'}</div>
+        </div>
+
+        <div class="alert-info" style="font-size: 12px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          <span>Por segurança, peça pra pessoa trocar essa senha no primeiro login. Você pode recriar caso ela esqueça.</span>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn" id="copy-creds">Copiar credenciais</button>
+          <button class="btn btn-primary" id="creds-close">Pronto</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target.id === 'modal-overlay') closeModal();
+  });
+  document.getElementById('creds-close').addEventListener('click', closeModal);
+  document.getElementById('copy-creds').addEventListener('click', async () => {
+    const text = `Acesso ao Dashboard Fundo de Caixa\n\nLink: ${window.location.origin + window.location.pathname}\nEmail: ${email}\nSenha: ${password}\nPapel: ${role === 'admin' ? 'Admin' : 'Visualizador'}\n\nAo entrar pela primeira vez, recomendamos trocar a senha.`;
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('Credenciais copiadas');
+    } catch (e) {
+      showToast('Não foi possível copiar — copie manualmente');
+    }
+  });
+}
+
 function renderTeam() {
   startUsersListener();
 
@@ -2536,14 +2727,15 @@ function renderTeam() {
   }).join('');
 
   return `
-    <div class="alert-info" style="margin-bottom: 16px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-      <span>
-        <strong>Como adicionar uma pessoa:</strong> primeiro cadastre o email/senha dela em
-        <strong>Firebase Console → Authentication → Add user</strong>.
-        Depois, quando ela fizer login pela primeira vez, vai aparecer aqui como <em>visualizador</em>.
-        Você pode promover a admin clicando no botão.
-      </span>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 12px;">
+      <div>
+        <div class="section-title" style="font-size: 14px;">Gerenciar equipe</div>
+        <div class="section-desc">Cadastre pessoas e defina permissões</div>
+      </div>
+      <button class="btn btn-primary" id="add-user-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+        Adicionar pessoa
+      </button>
     </div>
 
     <div class="metrics-grid" style="grid-template-columns: repeat(3, 1fr);">
