@@ -1,4 +1,4 @@
-<!doctype html>
+ <!doctype html>
 <html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="utf-8" />
@@ -1468,7 +1468,7 @@
         <span>Setores</span>
       </button>
       <button class="nav-item" data-tab="budget">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
         <span>Orçamento</span>
       </button>
       <button class="nav-item" data-tab="recharges">
@@ -3112,6 +3112,11 @@ function renderMonthDrilldown(monthKey) {
     `;
   }).join('');
 
+  // Calculos auxiliares
+  const monthRecharges = state.recharges.filter(r => r.month === monthKey);
+  const consumptionPct = totalRecharged > 0 ? (totalGasto / totalRecharged) * 100 : 0;
+  const st = statusOf(consumptionPct);
+
   return `
     <!-- Botão voltar -->
     <button class="btn btn-sm" id="btn-back-budget" style="margin-bottom: 16px;">
@@ -3119,55 +3124,90 @@ function renderMonthDrilldown(monthKey) {
       Voltar ao comparativo
     </button>
 
-    <!-- Card resumo do mês -->
-    <div class="card" style="margin-bottom: 16px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
-        <div>
+    <!-- Header do mês com 2 destaques principais lado a lado -->
+    <div class="card" style="margin-bottom: 16px; padding: 24px;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border);">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-muted);"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+        <div style="flex: 1;">
           <div class="hero-label">Resumo de</div>
-          <h2 style="font-size: 24px; font-weight: 600; margin: 0; letter-spacing: -0.02em; text-transform: capitalize;">${escHtml(monthLabel)}</h2>
-          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${compras.length} compras · ${reembolsos.length} reembolso(s)</div>
+          <h2 style="font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -0.02em; text-transform: capitalize;">${escHtml(monthLabel)}</h2>
         </div>
-        <div style="text-align: right;">
+        <span class="badge badge-${st.key}">${st.label}</span>
+      </div>
+
+      <!-- 2 destaques principais -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 18px;">
+        <div>
+          <div class="hero-label" style="color: var(--danger-fg);">Total gasto no mês</div>
+          <div style="font-size: 32px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; margin: 4px 0;" class="tabular">${fmtBRL(totalGasto)}</div>
+          <div style="font-size: 12px; color: var(--text-muted);">
+            <strong style="color: var(--text);">${compras.length}</strong> compras
+            ${reembolsos.length > 0 ? ` · <strong style="color: var(--text);">${reembolsos.length}</strong> reembolso${reembolsos.length > 1 ? 's' : ''}` : ''}
+          </div>
+        </div>
+        <div style="border-left: 1px solid var(--border); padding-left: 24px;">
           <div class="hero-label">Saldo final do mês</div>
-          <div style="font-size: 22px; font-weight: 600; letter-spacing: -0.01em;" class="tabular ${endBalance < 0 ? '' : ''}">${fmtBRL(endBalance)}</div>
-          <div style="font-size: 11px; color: var(--text-muted);">após este mês</div>
+          <div style="font-size: 32px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; margin: 4px 0; ${endBalance < 0 ? 'color: var(--danger-fg);' : ''}" class="tabular">${fmtBRL(endBalance)}</div>
+          <div style="font-size: 12px; color: var(--text-muted);">após este mês</div>
         </div>
       </div>
 
-      <!-- Mini extrato -->
-      <div style="background: var(--surface-2); border-radius: 6px; padding: 12px 14px;">
-        <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; font-size: 13px;">
-          <div style="color: var(--text-muted);">Saldo inicial</div>
-          <div class="tabular">${fmtBRL(startBalance)}</div>
-
-          <div style="color: var(--success-fg);">+ Recargas (${recharges.length})</div>
-          <div class="tabular" style="color: var(--success-fg);">+${fmtBRL(totalRecharged)}</div>
-
-          ${totalReembolsosIn > 0 ? `
-            <div style="color: var(--success-fg);">+ Reembolsos recebidos</div>
-            <div class="tabular" style="color: var(--success-fg);">+${fmtBRL(totalReembolsosIn)}</div>
-          ` : ''}
-
-          <div style="color: var(--danger-fg);">− Compras</div>
-          <div class="tabular" style="color: var(--danger-fg);">−${fmtBRL(totalGasto)}</div>
-
-          ${totalReembolsosOut > 0 ? `
-            <div style="color: var(--danger-fg);">− Pago a colaboradores</div>
-            <div class="tabular" style="color: var(--danger-fg);">−${fmtBRL(totalReembolsosOut)}</div>
-          ` : ''}
-
-          <div style="border-top: 1px solid var(--border); padding-top: 6px; font-weight: 600;">Saldo final</div>
-          <div style="border-top: 1px solid var(--border); padding-top: 6px; font-weight: 600;" class="tabular">${fmtBRL(endBalance)}</div>
+      <!-- Stats menores em linha -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding: 12px; background: var(--surface-2); border-radius: 8px;">
+        <div>
+          <div style="font-size: 10px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 2px;">Recargas</div>
+          <div class="tabular" style="font-size: 14px; font-weight: 600;">${fmtBRL(totalRecharged)}</div>
+          <div style="font-size: 10px; color: var(--text-muted);">${monthRecharges.length} ${monthRecharges.length === 1 ? 'envio' : 'envios'}</div>
+        </div>
+        <div>
+          <div style="font-size: 10px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 2px;">Ticket médio</div>
+          <div class="tabular" style="font-size: 14px; font-weight: 600;">${fmtBRL(ticketMedio)}</div>
+          <div style="font-size: 10px; color: var(--text-muted);">por compra</div>
+        </div>
+        <div>
+          <div style="font-size: 10px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 2px;">Frete total</div>
+          <div class="tabular" style="font-size: 14px; font-weight: 600;">${fmtBRL(totalFrete)}</div>
+          <div style="font-size: 10px; color: var(--text-muted);">soma dos fretes</div>
+        </div>
+        <div>
+          <div style="font-size: 10px; color: var(--text-subtle); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; margin-bottom: 2px;">% consumo</div>
+          <div class="tabular" style="font-size: 14px; font-weight: 600;">${consumptionPct.toFixed(1)}%</div>
+          <div style="font-size: 10px; color: var(--text-muted);">da recarga</div>
         </div>
       </div>
-    </div>
 
-    <!-- Métricas -->
-    <div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 16px;">
-      ${metric('Gasto total', fmtBRL(totalGasto))}
-      ${metric('Compras', compras.length)}
-      ${metric('Ticket médio', fmtBRL(ticketMedio))}
-      ${metric('Frete total', fmtBRL(totalFrete), 'soma dos fretes')}
+      <!-- Mini extrato (collapsible) -->
+      <details style="margin-top: 14px;">
+        <summary style="cursor: pointer; list-style: none; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); padding: 6px 0;">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform .2s;"><path d="M9 18l6-6-6-6"/></svg>
+          <span>Ver fluxo do mês (entradas e saídas)</span>
+        </summary>
+        <div style="background: var(--surface-2); border-radius: 6px; padding: 12px 14px; margin-top: 8px;">
+          <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; font-size: 13px;">
+            <div style="color: var(--text-muted);">Saldo inicial</div>
+            <div class="tabular">${fmtBRL(startBalance)}</div>
+
+            <div style="color: var(--success-fg);">+ Recargas (${monthRecharges.length})</div>
+            <div class="tabular" style="color: var(--success-fg);">+${fmtBRL(totalRecharged)}</div>
+
+            ${totalReembolsosIn > 0 ? `
+              <div style="color: var(--success-fg);">+ Reembolsos recebidos</div>
+              <div class="tabular" style="color: var(--success-fg);">+${fmtBRL(totalReembolsosIn)}</div>
+            ` : ''}
+
+            <div style="color: var(--danger-fg);">− Compras</div>
+            <div class="tabular" style="color: var(--danger-fg);">−${fmtBRL(totalGasto)}</div>
+
+            ${totalReembolsosOut > 0 ? `
+              <div style="color: var(--danger-fg);">− Pago a colaboradores</div>
+              <div class="tabular" style="color: var(--danger-fg);">−${fmtBRL(totalReembolsosOut)}</div>
+            ` : ''}
+
+            <div style="border-top: 1px solid var(--border); padding-top: 6px; font-weight: 600;">Saldo final</div>
+            <div style="border-top: 1px solid var(--border); padding-top: 6px; font-weight: 600;" class="tabular">${fmtBRL(endBalance)}</div>
+          </div>
+        </div>
+      </details>
     </div>
 
     <!-- Setores deste mês -->
