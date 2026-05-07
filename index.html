@@ -2568,6 +2568,121 @@ function renderOverview() {
 // =================================================
 // TAB: SECTORS
 // =================================================
+// =================================================
+// UNIR SETORES (admin tool)
+// =================================================
+async function mergeSectors(fromName, toName) {
+  if (!isAdmin()) { showToast('Apenas admins'); return false; }
+  try {
+    const txs = getAllTransactions().filter(t => t.setor === fromName);
+    if (txs.length === 0) {
+      showToast(`Nenhuma transação com setor "${fromName}"`);
+      return false;
+    }
+    showToast(`Renomeando ${txs.length} transações...`);
+    // Batch updates (max 400 por vez)
+    for (let i = 0; i < txs.length; i += 400) {
+      const batch = writeBatch(db);
+      txs.slice(i, i + 400).forEach(t => {
+        const { id, ...rest } = t;
+        batch.set(doc(db, 'transactions', id), { ...rest, setor: toName });
+      });
+      await batch.commit();
+    }
+    showToast(`✓ ${txs.length} transações movidas pra "${toName}"`);
+    return true;
+  } catch (e) {
+    console.error(e);
+    showToast('Erro: ' + e.message);
+    return false;
+  }
+}
+
+function openMergeSectorsModal() {
+  if (!isAdmin()) { showToast('Apenas admins'); return; }
+  const sectors = getUniqueSectors();
+  const sectorsByCount = sectors.map(s => {
+    const count = getAllTransactions().filter(t => t.setor === s).length;
+    return { name: s, count };
+  }).sort((a, b) => b.count - a.count);
+
+  const optionsFrom = sectorsByCount.map(s =>
+    `<option value="${escHtml(s.name)}">${escHtml(s.name)} (${s.count})</option>`
+  ).join('');
+  const optionsTo = sectorsByCount.map(s =>
+    `<option value="${escHtml(s.name)}">${escHtml(s.name)} (${s.count})</option>`
+  ).join('');
+
+  document.getElementById('modal-root').innerHTML = `
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal" style="max-width: 480px;">
+        <div class="modal-title">Unir setores</div>
+        <div class="modal-desc">Junte 2 setores que são na verdade o mesmo. Todas as transações do "origem" passam pra o "destino".</div>
+
+        <div class="form-row">
+          <label class="form-label">Setor de origem (será apagado)</label>
+          <select class="form-select" id="merge-from">
+            <option value="">— Selecione —</option>
+            ${optionsFrom}
+          </select>
+        </div>
+
+        <div style="text-align: center; padding: 6px 0; color: var(--text-muted); font-size: 14px;">↓</div>
+
+        <div class="form-row">
+          <label class="form-label">Setor de destino (vai receber as transações)</label>
+          <select class="form-select" id="merge-to">
+            <option value="">— Selecione —</option>
+            ${optionsTo}
+          </select>
+        </div>
+
+        <div class="alert-info" style="font-size: 12px; margin-top: 8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          <span>Ação reversível: você sempre pode unir de volta depois. Mas confira antes de confirmar.</span>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn" id="merge-cancel">Cancelar</button>
+          <button class="btn btn-primary" id="merge-confirm" disabled>Unir</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target.id === 'modal-overlay') closeModal();
+  });
+  document.getElementById('merge-cancel').addEventListener('click', closeModal);
+
+  const fromSel = document.getElementById('merge-from');
+  const toSel = document.getElementById('merge-to');
+  const confirmBtn = document.getElementById('merge-confirm');
+
+  function checkValid() {
+    const valid = fromSel.value && toSel.value && fromSel.value !== toSel.value;
+    confirmBtn.disabled = !valid;
+  }
+  fromSel.addEventListener('change', checkValid);
+  toSel.addEventListener('change', checkValid);
+
+  confirmBtn.addEventListener('click', async () => {
+    const from = fromSel.value;
+    const to = toSel.value;
+    if (!from || !to || from === to) return;
+    if (!confirm(`Confirmar: mover todas as transações de "${from}" para "${to}"?`)) return;
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Unindo...';
+    const ok = await mergeSectors(from, to);
+    if (ok) {
+      closeModal();
+    } else {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Unir';
+    }
+  });
+}
+
 function renderSectors() {
   const txs = getFiltered();
   const sectors = groupBy(txs, 'setor');
@@ -2725,6 +2840,10 @@ function renderSectors() {
           <div class="section-title">Detalhamento por setor</div>
           <div class="section-desc">${sectors.length} setores · % do gasto, % da recarga, variação vs mês anterior · clique para expandir</div>
         </div>
+        ${isAdmin() ? `<button class="btn btn-sm" id="btn-merge-sectors">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 4l-4 8 4 8"/><path d="M16 4l4 8-4 8"/><path d="M4 12h16"/></svg>
+          Unir setores
+        </button>` : ''}
       </div>
       ${sectorTxsHtml || '<div class="empty">Nenhum dado</div>'}
     </div>
@@ -3816,6 +3935,10 @@ function render() {
       }
     });
   }
+
+  // Botão "Unir setores"
+  const mergeBtn = el.querySelector('#btn-merge-sectors');
+  if (mergeBtn) mergeBtn.addEventListener('click', openMergeSectorsModal);
 
   // Tooltips em todos os elementos com data-tt
   el.querySelectorAll('[data-tt]').forEach(elt => {
