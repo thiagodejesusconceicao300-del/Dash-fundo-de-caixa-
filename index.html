@@ -1,4 +1,4 @@
-<!doctype html>
+ <!doctype html>
 <html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="utf-8" />
@@ -3107,6 +3107,26 @@ function render() {
   el.querySelectorAll('[data-edit-recharge]').forEach(btn => {
     btn.addEventListener('click', () => openRechargeModal(btn.dataset.editRecharge));
   });
+  el.querySelectorAll('[data-delete-recharge]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.deleteRecharge;
+      if (!confirm('Excluir essa recarga?')) return;
+      const ok = await deleteRecharge(id);
+      if (ok) showToast('Recarga removida');
+    });
+  });
+  el.querySelectorAll('[data-set-role]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      changeUserRole(btn.dataset.setRole, btn.dataset.role);
+    });
+  });
+  el.querySelectorAll('[data-remove-user]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      removeUser(btn.dataset.removeUser);
+    });
+  });
+  const addUserBtn = el.querySelector('#add-user-btn');
+  if (addUserBtn) addUserBtn.addEventListener('click', openAddUserModal);
 
   const search = document.getElementById('search-input');
   if (search) {
