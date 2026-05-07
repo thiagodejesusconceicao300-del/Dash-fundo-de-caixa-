@@ -132,7 +132,7 @@
   .topbar > div:last-child { display: flex; gap: 8px; align-items: center; }
 
   @media (max-width: 700px) {
-    .import-btn-text { display: none; }
+    .import-btn-text, .pdf-btn-text { display: none; }
     #auth-btn span { display: none; }
   }
 
@@ -990,6 +990,167 @@
     }
   }
 
+
+  /* === IMPRESSÃO / PDF === */
+  @media print {
+    /* Esconder elementos que não fazem sentido no papel */
+    .sidebar,
+    .topbar,
+    .filters,
+    #welcome-screen,
+    #modal-root,
+    #toast-root,
+    .pending-card-amount button,
+    [data-edit-tx],
+    [data-edit-recharge],
+    [data-delete-recharge],
+    [data-set-role],
+    [data-remove-user],
+    #add-user-btn,
+    .editable .pencil {
+      display: none !important;
+    }
+
+    /* Tela cheia */
+    body, html {
+      background: white !important;
+      color: black !important;
+      font-size: 11pt;
+    }
+    .layout, .main, .content {
+      display: block !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: visible !important;
+    }
+    .content {
+      padding: 12mm 10mm !important;
+    }
+
+    /* Cabeçalho impresso (gerado dinamicamente via JS) */
+    .print-header {
+      display: block !important;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #999;
+    }
+    .print-header h1 {
+      font-size: 18pt;
+      margin: 0 0 4px 0;
+      font-weight: 600;
+    }
+    .print-header .meta {
+      font-size: 10pt;
+      color: #555;
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* Forçar fundos brancos */
+    .card,
+    .metric,
+    .insight,
+    .pending-card,
+    .month-bar,
+    .hero-bar,
+    .bar-track,
+    .alert-info {
+      background: white !important;
+      border: 1px solid #ccc !important;
+      box-shadow: none !important;
+      page-break-inside: avoid;
+    }
+
+    /* Texto legível */
+    .hero-value, .metric-value, .badge {
+      color: black !important;
+    }
+    .text-muted, .muted, .section-desc, .metric-label,
+    .hero-label, .insight-label, .insight-value,
+    .hero-meta, .month-meta, .bar-secondary {
+      color: #555 !important;
+    }
+
+    /* Barras: contornar em vez de colorir */
+    .bar-fill, .hero-bar-fill {
+      background: #333 !important;
+    }
+
+    /* Badges: cor preta com borda em vez de fundo colorido (economiza tinta) */
+    .badge {
+      background: white !important;
+      border: 1px solid #999 !important;
+      color: black !important;
+    }
+    .badge-success { border-color: #15803d !important; color: #15803d !important; }
+    .badge-warning { border-color: #b45309 !important; color: #b45309 !important; }
+    .badge-danger  { border-color: #b91c1c !important; color: #b91c1c !important; }
+
+    /* Tabelas: bordas pretas */
+    table { border-collapse: collapse; }
+    thead th {
+      background: #f5f5f5 !important;
+      color: black !important;
+      border-bottom: 1px solid #999 !important;
+    }
+    tbody td {
+      border-bottom: 1px solid #ddd !important;
+    }
+    tbody tr {
+      page-break-inside: avoid;
+    }
+
+    /* Cards de insight no print */
+    .insight {
+      background: white !important;
+      color: black !important;
+      border: 1px solid #ccc !important;
+    }
+    .insight.success, .insight.warning, .insight.danger {
+      background: white !important;
+      color: black !important;
+      border: 1px dashed #888 !important;
+    }
+
+    /* Detalhes do hero sempre abertos no PDF */
+    #hero-detail {
+      display: block !important;
+    }
+    #hero-toggle {
+      display: none !important;
+    }
+
+    /* Avoid breaking sections badly */
+    .card, .section, .metrics-grid, .two-col {
+      page-break-inside: avoid;
+    }
+    .two-col {
+      display: grid !important;
+      grid-template-columns: 1fr 1fr !important;
+    }
+
+    /* Charts: força tamanho razoável no papel */
+    .chart-svg {
+      max-height: 200px !important;
+    }
+
+    /* Cor uniforme nas linhas dos gráficos */
+    .chart-svg .line-spent { stroke: #000 !important; }
+    .chart-svg .line-budget { stroke: #888 !important; }
+    .chart-svg text { fill: #000 !important; }
+
+    /* Page setup */
+    @page {
+      size: A4;
+      margin: 12mm;
+    }
+  }
+  /* Print header só aparece no print */
+  .print-header { display: none; }
+
 </style>
 </head>
 <body>
@@ -1113,6 +1274,11 @@
   </aside>
 
   <main class="main">
+      <!-- Cabeçalho que só aparece quando imprime/PDF -->
+      <div class="print-header" id="print-header">
+        <h1 id="print-title">Fundo de caixa</h1>
+        <div class="meta" id="print-meta"></div>
+      </div>
     <header class="topbar">
       <div class="breadcrumb">
         <span class="crumb-muted">Fundo de caixa</span>
@@ -1121,6 +1287,10 @@
       </div>
       <div class="topbar-actions" id="topbar-actions"></div>
       <div style="display: flex; gap: 8px; align-items: center;">
+        <button class="btn btn-sm" id="export-pdf-btn" title="Exportar como PDF">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>
+          <span class="pdf-btn-text">Exportar PDF</span>
+        </button>
         <button class="btn btn-sm hidden" id="import-btn" title="Importar Excel">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 8l5-5 5 5"/><rect x="3" y="15" width="18" height="6" rx="1"/></svg>
           <span class="import-btn-text">Importar Excel</span>
@@ -1384,10 +1554,10 @@ function statusOf(pct) {
   return { key: 'critical', label: 'Estourado' };
 }
 
-function showToast(msg) {
+function showToast(msg, duration) {
   const root = document.getElementById('toast-root');
   root.innerHTML = `<div class="toast">${escHtml(msg)}</div>`;
-  setTimeout(() => { root.innerHTML = ''; }, 2400);
+  setTimeout(() => { root.innerHTML = ''; }, duration || 2400);
 }
 
 // =================================================
@@ -2493,30 +2663,39 @@ async function removeUser(userId) {
 }
 
 async function createNewUser(email, password, role) {
-  if (!isAdmin()) { showToast('Apenas admins podem cadastrar'); return false; }
+  if (!isAdmin()) { showToast('Apenas admins podem cadastrar', 5000); return false; }
   try {
     // Cria o user na 2ª instância (não desloga o admin atual)
     const cred = await createUserWithEmailAndPassword(secondaryAuth, email, password);
     const newUid = cred.user.uid;
     // Cria o documento /users/{uid} já com o role escolhido
-    // OBS: nas regras, o create de /users/{uid} exige request.auth.uid == uid.
-    // Como a 2ª instância está logada com o novo user, isso funciona!
-    await setDoc(doc(db, 'users', newUid), {
-      email,
-      role,
-      createdAt: new Date().toISOString(),
-      createdBy: currentUser.email,
-    });
+    try {
+      await setDoc(doc(db, 'users', newUid), {
+        email,
+        role,
+        createdAt: new Date().toISOString(),
+        createdBy: currentUser.email,
+      });
+    } catch (firestoreErr) {
+      console.error('Erro Firestore:', firestoreErr);
+      // O user foi criado no Auth mas não no Firestore — avisar
+      showToast('Usuário criado no Auth mas falhou no Firestore. Pode tentar promover pelo painel Equipe.', 6000);
+      await signOut(secondaryAuth);
+      return false;
+    }
     // Desloga da 2ª instância (limpa)
     await signOut(secondaryAuth);
     return true;
   } catch (e) {
-    console.error(e);
-    let msg = 'Erro ao criar usuário';
+    console.error('Erro createUser:', e);
+    let msg;
     if (e.code === 'auth/email-already-in-use') msg = 'Esse email já está cadastrado';
     else if (e.code === 'auth/invalid-email') msg = 'Email inválido';
     else if (e.code === 'auth/weak-password') msg = 'Senha precisa ter no mínimo 6 caracteres';
-    showToast(msg);
+    else if (e.code === 'auth/operation-not-allowed') msg = 'Login email/senha não está habilitado no Firebase';
+    else if (e.code === 'auth/network-request-failed') msg = 'Sem conexão com a internet';
+    else msg = 'Erro ao criar usuário: ' + (e.message || e.code || 'desconhecido');
+    showToast(msg, 6000);
     return false;
   }
 }
@@ -3729,11 +3908,66 @@ function updateWelcomeThemeIcon() {
 updateWelcomeThemeIcon();
 
 // =================================================
+// EXPORT PDF (impressão nativa do navegador)
+// =================================================
+const TAB_LABELS = {
+  overview: 'Visão geral',
+  sectors: 'Setores',
+  budget: 'Orçamento',
+  recharges: 'Recargas',
+  pending: 'Pendências',
+  history: 'Histórico',
+  team: 'Equipe',
+};
+
+function exportToPDF() {
+  // Atualizar cabeçalho impresso com dados atuais
+  const title = document.getElementById('print-title');
+  const meta = document.getElementById('print-meta');
+
+  const tabLabel = TAB_LABELS[state.activeTab] || 'Relatório';
+  title.textContent = `Fundo de caixa · ${tabLabel}`;
+
+  const f = state.filters;
+  const parts = [];
+  parts.push(`<strong>Período:</strong> ${MONTH_LABELS[f.month] || f.month}`);
+  if (f.sector !== 'all') parts.push(`<strong>Setor:</strong> ${escHtml(f.sector)}`);
+  if (f.supplier !== 'all') parts.push(`<strong>Fornecedor:</strong> ${escHtml(f.supplier)}`);
+  if (f.type !== 'todos') {
+    const typeLabel = f.type === 'compra' ? 'Compras' : f.type === 'reembolso' ? 'Reembolsos' : f.type;
+    parts.push(`<strong>Tipo:</strong> ${typeLabel}`);
+  }
+  parts.push(`<strong>Gerado em:</strong> ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`);
+  meta.innerHTML = parts.map(p => `<span>${p}</span>`).join('');
+
+  // Salva título original e troca temporariamente
+  const originalTitle = document.title;
+  const dateStr = new Date().toISOString().slice(0, 10);
+  document.title = `Fundo-caixa-${tabLabel.replace(/\s+/g, '-')}-${dateStr}`;
+
+  // Garante que detalhes do Hero estão expandidos no PDF
+  const heroDetail = document.querySelector('#hero-detail');
+  const wasHidden = heroDetail && heroDetail.classList.contains('hidden');
+  if (heroDetail && wasHidden) heroDetail.classList.remove('hidden');
+
+  // Abrir diálogo de impressão
+  setTimeout(() => {
+    window.print();
+    // Restaurar
+    document.title = originalTitle;
+    if (heroDetail && wasHidden) heroDetail.classList.add('hidden');
+  }, 100);
+}
+
+// =================================================
 // INIT
 // =================================================
 populateFilterOptions();
 startFirestoreListeners();
 render();
+
+// Hook do botão Exportar PDF
+document.getElementById('export-pdf-btn').addEventListener('click', exportToPDF);
 
 // Auth button no topo - sempre faz logout (porque app só aparece logado)
 document.getElementById('auth-btn').addEventListener('click', () => {
