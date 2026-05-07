@@ -1,4 +1,4 @@
- <!doctype html>
+<!doctype html>
 <html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="utf-8" />
@@ -1383,6 +1383,7 @@ const db = getFirestore(app);
 // (createUserWithEmailAndPassword faz login automaticamente — usar 2ª instância evita esse efeito)
 const secondaryApp = initializeApp(firebaseConfig, 'secondary');
 const secondaryAuth = getAuth(secondaryApp);
+const secondaryDb = getFirestore(secondaryApp);
 
 // =================================================
 // DATA — vem do Firestore
@@ -2670,7 +2671,9 @@ async function createNewUser(email, password, role) {
     const newUid = cred.user.uid;
     // Cria o documento /users/{uid} já com o role escolhido
     try {
-      await setDoc(doc(db, 'users', newUid), {
+      // IMPORTANTE: usar secondaryDb pra que a operação rode como o NOVO usuário
+      // (a regra `allow create: if request.auth.uid == userId` exige isso)
+      await setDoc(doc(secondaryDb, 'users', newUid), {
         email,
         role,
         createdAt: new Date().toISOString(),
